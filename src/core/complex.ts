@@ -1,6 +1,6 @@
 import type { ComplexValue, QuantityValue, ScalarListValue, ScalarValue } from './types'
 
-const POLAR_SPLITTER = /[∠@]/
+const POLAR_SPLITTER = /[\u2220@]/
 
 export function scalar(value: number): ScalarValue {
   return { kind: 'scalar', value }
@@ -169,7 +169,7 @@ function parsePolarComplex(raw: string): ComplexValue | undefined {
     return undefined
   }
 
-  const angleMatch = anglePart.match(/^([+-]?\d*\.?\d+(?:e[+-]?\d+)?)(deg|rad|°)$/i)
+  const angleMatch = anglePart.match(/^([+-]?\d*\.?\d+(?:e[+-]?\d+)?)(deg|rad|\u00B0)$/i)
   if (!angleMatch) {
     return undefined
   }

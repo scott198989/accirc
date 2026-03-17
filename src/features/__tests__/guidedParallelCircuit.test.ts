@@ -116,4 +116,52 @@ describe('solveGuidedParallelCircuit', () => {
 
     expect(result.status).toBe('invalid')
   })
+
+  it('derives source-dependent parallel outputs when source voltage is provided', () => {
+    const result = solveGuidedParallelCircuit({
+      goal: 'parallel-real-power',
+      frequencyRawValue: '',
+      frequencyUnitId: 'hz',
+      sourceVoltageRawValue: '20',
+      sourceVoltageUnitId: 'v',
+      components: [
+        {
+          id: 'r1',
+          kind: 'resistor',
+          valueMode: 'resistance',
+          rawValue: '5',
+          unitId: 'ohm',
+        },
+        {
+          id: 'l1',
+          kind: 'inductor',
+          valueMode: 'reactance',
+          rawValue: '8',
+          unitId: 'ohm',
+        },
+        {
+          id: 'c1',
+          kind: 'capacitor',
+          valueMode: 'reactance',
+          rawValue: '20',
+          unitId: 'ohm',
+        },
+      ],
+    })
+
+    expect(result.status).toBe('solved')
+    if (
+      result.status !== 'solved' ||
+      result.output.result.status !== 'solved' ||
+      result.output.result.value.kind !== 'scalar' ||
+      !result.reference.sourceCurrent ||
+      result.reference.sourceCurrent.result.status !== 'solved' ||
+      result.reference.sourceCurrent.result.value.kind !== 'scalar'
+    ) {
+      return
+    }
+
+    expect(result.reference.sourceCurrent.result.value.value).toBeCloseTo(4.27200187, 6)
+    expect(result.output.result.value.value).toBeCloseTo(80, 6)
+  })
 })

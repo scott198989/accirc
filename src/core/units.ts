@@ -38,7 +38,7 @@ export function parseAndNormalizeValue(
     return {
       error:
         quantity.kind === 'complex'
-          ? `Enter ${quantity.label} as a rectangular value like 3+4j or a polar value like 5∠30deg.`
+          ? `Enter ${quantity.label} as a rectangular value like 3+4j or a polar value like 5@30deg.`
           : quantity.kind === 'scalarList'
             ? `Enter ${quantity.label} as a comma-separated list of numbers.`
             : `Enter a valid numeric value for ${quantity.label}.`,
@@ -113,6 +113,20 @@ export const UNIT_SETS = {
     unit('ma', 'Milliamperes', 'mA', 1e-3),
     unit('ua', 'Microamperes', 'uA', 1e-6),
   ],
+  force: [
+    unit('n', 'Newtons', 'N', 1),
+    unit('mn_force', 'Millinewtons', 'mN', 1e-3),
+    unit('un_force', 'Micronewtons', 'uN', 1e-6),
+  ],
+  electricField: [
+    unit('v_per_m', 'Volts per meter', 'V/m', 1),
+    unit('kv_per_m', 'Kilovolts per meter', 'kV/m', 1e3),
+    unit('v_per_mm', 'Volts per millimeter', 'V/mm', 1e3),
+    unit('kv_per_mm', 'Kilovolts per millimeter', 'kV/mm', 1e6),
+    unit('v_per_mil', 'Volts per mil', 'V/mil', 1 / 0.0000254),
+    unit('n_per_c', 'Newtons per coulomb', 'N/C', 1),
+    unit('kn_per_c', 'Kilonewtons per coulomb', 'kN/C', 1e3),
+  ],
   admittance: [
     unit('s', 'Siemens', 'S', 1),
     unit('msiemens', 'Millisiemens', 'mS', 1e-3),
@@ -140,6 +154,11 @@ export const UNIT_SETS = {
     unit('mw', 'Milliwatts', 'mW', 1e-3),
     unit('kw', 'Kilowatts', 'kW', 1e3),
   ],
+  energy: [
+    unit('j', 'Joules', 'J', 1),
+    unit('mj', 'Millijoules', 'mJ', 1e-3),
+    unit('uj', 'Microjoules', 'uJ', 1e-6),
+  ],
   charge: [
     unit('c', 'Coulombs', 'C', 1),
     unit('mc', 'Millicoulombs', 'mC', 1e-3),
@@ -157,6 +176,24 @@ export const UNIT_SETS = {
   fluxRate: [
     unit('wb_per_s', 'Webers per second', 'Wb/s', 1),
     unit('mwb_per_s', 'Milliwebers per second', 'mWb/s', 1e-3),
+  ],
+  distance: [
+    unit('m', 'Meters', 'm', 1),
+    unit('cm', 'Centimeters', 'cm', 1e-2),
+    unit('mm', 'Millimeters', 'mm', 1e-3),
+    unit('um_distance', 'Micrometers', 'um', 1e-6),
+    unit('in', 'Inches', 'in', 0.0254),
+    unit('mil', 'Mils', 'mil', 0.0000254),
+  ],
+  area: [
+    unit('m2', 'Square meters', 'm^2', 1),
+    unit('cm2', 'Square centimeters', 'cm^2', 1e-4),
+    unit('mm2', 'Square millimeters', 'mm^2', 1e-6),
+    unit('in2', 'Square inches', 'in^2', 0.0254 ** 2),
+  ],
+  permittivity: [
+    unit('f_per_m', 'Farads per meter', 'F/m', 1),
+    unit('pf_per_m', 'Picofarads per meter', 'pF/m', 1e-12),
   ],
   length: [
     unit('m', 'Meters', 'm', 1),

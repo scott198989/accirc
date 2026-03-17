@@ -18,6 +18,8 @@ const TAU = Math.PI * 2
 const INCH_IN_METERS = 0.0254
 const UH_IN_H = 1e-6
 const EPSILON = 1e-9
+const VACUUM_PERMITTIVITY = 8.85e-12
+const COULOMB_CONSTANT = 9e9
 
 function family(
   id: string,
@@ -224,7 +226,7 @@ export const formulaFamilies: FormulaFamily[] = [
       compute: (values) => scalar(getScalar(values, 'voltage') / getScalar(values, 'current')),
     },
   ]),
-  family('inductive-reactance-frequency', 'Inductive reactance from frequency', '13', [
+  family('inductive-reactance-frequency', 'Inductive reactance from frequency', '14', [
     {
       id: 'xl-from-frequency-and-inductance',
       target: 'inductiveReactance',
@@ -276,7 +278,7 @@ export const formulaFamilies: FormulaFamily[] = [
         ),
     },
   ]),
-  family('inductive-reactance-omega', 'Inductive reactance from angular frequency', '13', [
+  family('inductive-reactance-omega', 'Inductive reactance from angular frequency', '14', [
     {
       id: 'xl-from-omega-and-inductance',
       target: 'inductiveReactance',
@@ -380,7 +382,7 @@ export const formulaFamilies: FormulaFamily[] = [
         ),
     },
   ]),
-  family('capacitor-current', 'Capacitor current', '14', [
+  family('capacitor-current', 'Capacitor current', '10', [
     {
       id: 'current-from-capacitance-and-dvdt',
       target: 'current',
@@ -756,7 +758,7 @@ export const formulaFamilies: FormulaFamily[] = [
         scalar(getScalar(values, 'conductance') / getScalar(values, 'admittanceMagnitude')),
     },
   ]),
-  family('power-factor-vi', 'Power factor from power, voltage, and current', '13', [
+  family('power-factor-vi', 'Power factor from power, voltage, and current', '14', [
     {
       id: 'pf-from-power-voltage-current',
       target: 'powerFactor',
@@ -866,7 +868,7 @@ export const formulaFamilies: FormulaFamily[] = [
       compute: (values) => scalar(getScalar(values, 'rmsVoltage') * Math.SQRT2),
     },
   ]),
-  family('inductive-impedance', 'Inductor impedance', '15', [
+  family('inductive-impedance', 'Inductor impedance', '14', [
     {
       id: 'zl-from-xl',
       target: 'inductiveImpedance',
@@ -955,7 +957,7 @@ export const formulaFamilies: FormulaFamily[] = [
       },
     },
   ]),
-  family('net-reactance', 'Net reactance', '13', [
+  family('net-reactance', 'Net reactance', '15', [
     {
       id: 'net-reactance-from-xl-and-xc',
       target: 'netReactance',
@@ -987,7 +989,7 @@ export const formulaFamilies: FormulaFamily[] = [
         scalar(getScalar(values, 'inductiveReactance') - getScalar(values, 'netReactance')),
     },
   ]),
-  family('complex-impedance', 'Complex impedance', '13', [
+  family('complex-impedance', 'Complex impedance', '15', [
     {
       id: 'complex-impedance-from-r-xl-xc',
       target: 'impedanceComplex',
@@ -1098,7 +1100,7 @@ export const formulaFamilies: FormulaFamily[] = [
         scalar(1 / (getScalar(values, 'capacitance') * getScalar(values, 'angularFrequency'))),
     },
   ]),
-  family('phasor-current', 'Current from voltage and impedance', '13', [
+  family('phasor-current', 'Current from voltage and impedance', '15', [
     {
       id: 'phasor-current-from-source-and-impedance',
       target: 'phasorCurrent',
@@ -1138,7 +1140,7 @@ export const formulaFamilies: FormulaFamily[] = [
         divideComplex(getComplex(values, 'phasorSourceVoltage'), getComplex(values, 'phasorCurrent')),
     },
   ]),
-  family('resistor-voltage-phasor', 'Resistor voltage phasor', '13', [
+  family('resistor-voltage-phasor', 'Resistor voltage phasor', '15', [
     {
       id: 'vr-from-current-and-resistance',
       target: 'resistorVoltagePhasor',
@@ -1167,7 +1169,7 @@ export const formulaFamilies: FormulaFamily[] = [
       },
     },
   ]),
-  family('source-voltage-sum', 'Summing phasor voltages', '13', [
+  family('source-voltage-sum', 'Summing phasor voltages', '15', [
     {
       id: 'source-from-vr-vl-vc',
       target: 'phasorSourceVoltage',
@@ -1203,7 +1205,7 @@ export const formulaFamilies: FormulaFamily[] = [
         ),
     },
   ]),
-  family('power-i2r', 'Power from current and resistance', '13', [
+  family('power-i2r', 'Power from current and resistance', '15', [
     {
       id: 'power-from-current-and-resistance',
       target: 'realPower',
@@ -1244,7 +1246,7 @@ export const formulaFamilies: FormulaFamily[] = [
       compute: (values) => scalar(getScalar(values, 'realPower') / (getScalar(values, 'current') ** 2)),
     },
   ]),
-  family('power-v-i-angle', 'Power from voltage, current, and phase angle', '13', [
+  family('power-v-i-angle', 'Power from voltage, current, and phase angle', '15', [
     {
       id: 'power-from-v-i-angle',
       target: 'realPower',
@@ -1314,7 +1316,7 @@ export const formulaFamilies: FormulaFamily[] = [
         ),
     },
   ]),
-  family('power-factor-angle', 'Power factor and phase angle', '13', [
+  family('power-factor-angle', 'Power factor and phase angle', '14', [
     {
       id: 'pf-from-phase-angle',
       target: 'powerFactor',
@@ -1338,7 +1340,7 @@ export const formulaFamilies: FormulaFamily[] = [
       compute: (values) => scalar(Math.acos(getScalar(values, 'powerFactor'))),
     },
   ]),
-  family('voltage-divider', 'AC voltage divider', '13', [
+  family('voltage-divider', 'AC voltage divider', '15', [
     {
       id: 'branch-voltage-from-divider',
       target: 'branchVoltagePhasor',
@@ -1357,7 +1359,446 @@ export const formulaFamilies: FormulaFamily[] = [
         ),
     },
   ]),
-  family('charge-voltage-capacitance', 'Charge, voltage, and capacitance', '14', [
+  family('electric-field-force-charge', 'Electric field, force, and charge', '10', [
+    {
+      id: 'electric-field-from-force-and-charge',
+      target: 'electricFieldStrength',
+      inputs: ['electricForce', 'charge'],
+      displayFormula: 'E = F / Q',
+      description: 'Computes electric field strength from electric force and charge.',
+      priority: 8,
+      validate: (values) => nonZero(getScalar(values, 'charge'), 'Charge'),
+      compute: (values) =>
+        scalar(getScalar(values, 'electricForce') / getScalar(values, 'charge')),
+    },
+    {
+      id: 'force-from-electric-field-and-charge',
+      target: 'electricForce',
+      inputs: ['electricFieldStrength', 'charge'],
+      displayFormula: 'F = EQ',
+      description: 'Computes electric force from electric field strength and charge.',
+      priority: 8,
+      compute: (values) =>
+        scalar(getScalar(values, 'electricFieldStrength') * getScalar(values, 'charge')),
+    },
+    {
+      id: 'charge-from-electric-force-and-field',
+      target: 'charge',
+      inputs: ['electricForce', 'electricFieldStrength'],
+      displayFormula: 'Q = F / E',
+      description: 'Computes charge from electric force and field strength.',
+      priority: 8,
+      validate: (values) => nonZero(getScalar(values, 'electricFieldStrength'), 'Electric field strength'),
+      compute: (values) =>
+        scalar(getScalar(values, 'electricForce') / getScalar(values, 'electricFieldStrength')),
+    },
+  ]),
+  family('point-charge-electric-field', 'Electric field of a point charge', '10', [
+    {
+      id: 'electric-field-from-charge-and-distance',
+      target: 'electricFieldStrength',
+      inputs: ['charge', 'distance'],
+      displayFormula: 'E = kQ / d^2',
+      description: 'Computes point-charge electric field strength from charge and distance.',
+      priority: 8,
+      validate: (values) => positive(getScalar(values, 'distance'), 'Distance'),
+      compute: (values) =>
+        scalar(
+          (COULOMB_CONSTANT * getScalar(values, 'charge')) /
+            getScalar(values, 'distance') ** 2,
+        ),
+    },
+    {
+      id: 'charge-from-point-electric-field-and-distance',
+      target: 'charge',
+      inputs: ['electricFieldStrength', 'distance'],
+      displayFormula: 'Q = Ed^2 / k',
+      description: 'Computes the point charge that creates the electric field.',
+      priority: 8,
+      validate: (values) => positive(getScalar(values, 'distance'), 'Distance'),
+      compute: (values) =>
+        scalar(
+          (getScalar(values, 'electricFieldStrength') * getScalar(values, 'distance') ** 2) /
+            COULOMB_CONSTANT,
+        ),
+    },
+    {
+      id: 'distance-from-point-electric-field-and-charge',
+      target: 'distance',
+      inputs: ['electricFieldStrength', 'charge'],
+      displayFormula: 'd = sqrt(kQ / E)',
+      description: 'Computes the distance from a point charge for the requested field strength.',
+      priority: 8,
+      validate: (values) => {
+        const field = getScalar(values, 'electricFieldStrength')
+        const charge = getScalar(values, 'charge')
+        const ratio = (COULOMB_CONSTANT * charge) / field
+        return validateAll(
+          nonZero(field, 'Electric field strength'),
+          ratio > 0 ? undefined : 'kQ / E must be greater than zero.',
+        )
+      },
+      compute: (values) =>
+        scalar(
+          Math.sqrt(
+            (COULOMB_CONSTANT * getScalar(values, 'charge')) /
+              getScalar(values, 'electricFieldStrength'),
+          ),
+        ),
+    },
+  ]),
+  family('plate-electric-field', 'Electric field between capacitor plates', '10', [
+    {
+      id: 'electric-field-from-voltage-and-distance',
+      target: 'electricFieldStrength',
+      inputs: ['voltage', 'distance'],
+      displayFormula: 'E = V / d',
+      description: 'Computes electric field strength between capacitor plates.',
+      priority: 8,
+      validate: (values) => nonZero(getScalar(values, 'distance'), 'Distance'),
+      compute: (values) => scalar(getScalar(values, 'voltage') / getScalar(values, 'distance')),
+    },
+    {
+      id: 'voltage-from-electric-field-and-distance',
+      target: 'voltage',
+      inputs: ['electricFieldStrength', 'distance'],
+      displayFormula: 'V = Ed',
+      description: 'Computes applied voltage from field strength and spacing.',
+      priority: 8,
+      compute: (values) =>
+        scalar(getScalar(values, 'electricFieldStrength') * getScalar(values, 'distance')),
+    },
+    {
+      id: 'distance-from-voltage-and-electric-field',
+      target: 'distance',
+      inputs: ['voltage', 'electricFieldStrength'],
+      displayFormula: 'd = V / E',
+      description: 'Computes plate spacing from voltage and field strength.',
+      priority: 8,
+      validate: (values) => nonZero(getScalar(values, 'electricFieldStrength'), 'Electric field strength'),
+      compute: (values) => scalar(getScalar(values, 'voltage') / getScalar(values, 'electricFieldStrength')),
+    },
+  ]),
+  family('relative-permittivity', 'Permittivity and dielectric constant', '10', [
+    {
+      id: 'relative-permittivity-from-permittivity',
+      target: 'relativePermittivity',
+      inputs: ['permittivity'],
+      displayFormula: 'eps_r = epsilon / epsilon_0',
+      description: 'Computes relative permittivity from absolute permittivity.',
+      priority: 8,
+      compute: (values) => scalar(getScalar(values, 'permittivity') / VACUUM_PERMITTIVITY),
+    },
+    {
+      id: 'permittivity-from-relative-permittivity',
+      target: 'permittivity',
+      inputs: ['relativePermittivity'],
+      displayFormula: 'epsilon = eps_r epsilon_0',
+      description: 'Computes absolute permittivity from relative permittivity.',
+      priority: 8,
+      compute: (values) =>
+        scalar(getScalar(values, 'relativePermittivity') * VACUUM_PERMITTIVITY),
+    },
+  ]),
+  family('dielectric-capacitance-ratio', 'Capacitance change from dielectric insertion', '10', [
+    {
+      id: 'capacitance-from-relative-permittivity-and-air-capacitance',
+      target: 'capacitance',
+      inputs: ['relativePermittivity', 'airCapacitance'],
+      displayFormula: 'C = eps_r C0',
+      description: 'Computes capacitor value after dielectric insertion.',
+      priority: 8,
+      compute: (values) =>
+        scalar(getScalar(values, 'relativePermittivity') * getScalar(values, 'airCapacitance')),
+    },
+    {
+      id: 'relative-permittivity-from-capacitance-ratio',
+      target: 'relativePermittivity',
+      inputs: ['capacitance', 'airCapacitance'],
+      displayFormula: 'eps_r = C / C0',
+      description: 'Computes dielectric constant from the capacitance ratio.',
+      priority: 8,
+      validate: (values) => positive(getScalar(values, 'airCapacitance'), 'Air capacitance'),
+      compute: (values) =>
+        scalar(getScalar(values, 'capacitance') / getScalar(values, 'airCapacitance')),
+    },
+    {
+      id: 'air-capacitance-from-capacitance-and-relative-permittivity',
+      target: 'airCapacitance',
+      inputs: ['capacitance', 'relativePermittivity'],
+      displayFormula: 'C0 = C / eps_r',
+      description: 'Computes the air-capacitor value before dielectric insertion.',
+      priority: 8,
+      validate: (values) => nonZero(getScalar(values, 'relativePermittivity'), 'Relative permittivity'),
+      compute: (values) =>
+        scalar(getScalar(values, 'capacitance') / getScalar(values, 'relativePermittivity')),
+    },
+  ]),
+  family('air-parallel-plate-capacitance', 'Air capacitor plate geometry', '10', [
+    {
+      id: 'capacitance-from-air-geometry',
+      target: 'capacitance',
+      inputs: ['plateArea', 'distance'],
+      displayFormula: 'C = epsilon_0 A / d',
+      description: 'Computes air-capacitor capacitance from plate area and spacing.',
+      priority: 8,
+      validate: (values) =>
+        validateAll(
+          positive(getScalar(values, 'plateArea'), 'Plate area'),
+          positive(getScalar(values, 'distance'), 'Distance'),
+        ),
+      compute: (values) =>
+        scalar(
+          (VACUUM_PERMITTIVITY * getScalar(values, 'plateArea')) /
+            getScalar(values, 'distance'),
+        ),
+    },
+    {
+      id: 'air-capacitance-from-air-geometry',
+      target: 'airCapacitance',
+      inputs: ['plateArea', 'distance'],
+      displayFormula: 'C0 = epsilon_0 A / d',
+      description: 'Computes the reference air-capacitor value from geometry.',
+      priority: 7,
+      validate: (values) =>
+        validateAll(
+          positive(getScalar(values, 'plateArea'), 'Plate area'),
+          positive(getScalar(values, 'distance'), 'Distance'),
+        ),
+      compute: (values) =>
+        scalar(
+          (VACUUM_PERMITTIVITY * getScalar(values, 'plateArea')) /
+            getScalar(values, 'distance'),
+        ),
+    },
+    {
+      id: 'plate-area-from-air-capacitance-and-distance',
+      target: 'plateArea',
+      inputs: ['capacitance', 'distance'],
+      displayFormula: 'A = Cd / epsilon_0',
+      description: 'Computes plate area for an air capacitor.',
+      priority: 8,
+      validate: (values) =>
+        validateAll(
+          positive(getScalar(values, 'capacitance'), 'Capacitance'),
+          positive(getScalar(values, 'distance'), 'Distance'),
+        ),
+      compute: (values) =>
+        scalar(
+          (getScalar(values, 'capacitance') * getScalar(values, 'distance')) /
+            VACUUM_PERMITTIVITY,
+        ),
+    },
+    {
+      id: 'distance-from-air-capacitance-and-area',
+      target: 'distance',
+      inputs: ['capacitance', 'plateArea'],
+      displayFormula: 'd = epsilon_0 A / C',
+      description: 'Computes air-capacitor spacing from capacitance and plate area.',
+      priority: 8,
+      validate: (values) =>
+        validateAll(
+          positive(getScalar(values, 'capacitance'), 'Capacitance'),
+          positive(getScalar(values, 'plateArea'), 'Plate area'),
+        ),
+      compute: (values) =>
+        scalar(
+          (VACUUM_PERMITTIVITY * getScalar(values, 'plateArea')) /
+            getScalar(values, 'capacitance'),
+        ),
+    },
+  ]),
+  family('parallel-plate-capacitance-permittivity', 'Capacitor plate geometry with permittivity', '10', [
+    {
+      id: 'capacitance-from-permittivity-area-and-distance',
+      target: 'capacitance',
+      inputs: ['permittivity', 'plateArea', 'distance'],
+      displayFormula: 'C = epsilon A / d',
+      description: 'Computes capacitor value from absolute permittivity, area, and spacing.',
+      priority: 8,
+      validate: (values) =>
+        validateAll(
+          positive(getScalar(values, 'permittivity'), 'Permittivity'),
+          positive(getScalar(values, 'plateArea'), 'Plate area'),
+          positive(getScalar(values, 'distance'), 'Distance'),
+        ),
+      compute: (values) =>
+        scalar(
+          (getScalar(values, 'permittivity') * getScalar(values, 'plateArea')) /
+            getScalar(values, 'distance'),
+        ),
+    },
+    {
+      id: 'permittivity-from-capacitance-area-and-distance',
+      target: 'permittivity',
+      inputs: ['capacitance', 'plateArea', 'distance'],
+      displayFormula: 'epsilon = Cd / A',
+      description: 'Computes absolute permittivity from capacitance geometry.',
+      priority: 8,
+      validate: (values) =>
+        validateAll(
+          positive(getScalar(values, 'capacitance'), 'Capacitance'),
+          positive(getScalar(values, 'plateArea'), 'Plate area'),
+        ),
+      compute: (values) =>
+        scalar(
+          (getScalar(values, 'capacitance') * getScalar(values, 'distance')) /
+            getScalar(values, 'plateArea'),
+        ),
+    },
+    {
+      id: 'plate-area-from-capacitance-permittivity-and-distance',
+      target: 'plateArea',
+      inputs: ['capacitance', 'permittivity', 'distance'],
+      displayFormula: 'A = Cd / epsilon',
+      description: 'Computes plate area from capacitance, permittivity, and spacing.',
+      priority: 8,
+      validate: (values) =>
+        validateAll(
+          positive(getScalar(values, 'capacitance'), 'Capacitance'),
+          positive(getScalar(values, 'permittivity'), 'Permittivity'),
+        ),
+      compute: (values) =>
+        scalar(
+          (getScalar(values, 'capacitance') * getScalar(values, 'distance')) /
+            getScalar(values, 'permittivity'),
+        ),
+    },
+    {
+      id: 'distance-from-capacitance-permittivity-and-area',
+      target: 'distance',
+      inputs: ['capacitance', 'permittivity', 'plateArea'],
+      displayFormula: 'd = epsilon A / C',
+      description: 'Computes plate spacing from capacitance, permittivity, and area.',
+      priority: 8,
+      validate: (values) =>
+        validateAll(
+          positive(getScalar(values, 'capacitance'), 'Capacitance'),
+          positive(getScalar(values, 'permittivity'), 'Permittivity'),
+          positive(getScalar(values, 'plateArea'), 'Plate area'),
+        ),
+      compute: (values) =>
+        scalar(
+          (getScalar(values, 'permittivity') * getScalar(values, 'plateArea')) /
+            getScalar(values, 'capacitance'),
+        ),
+    },
+  ]),
+  family('parallel-plate-capacitance-relative', 'Capacitor plate geometry with dielectric constant', '10', [
+    {
+      id: 'capacitance-from-relative-permittivity-area-and-distance',
+      target: 'capacitance',
+      inputs: ['relativePermittivity', 'plateArea', 'distance'],
+      displayFormula: 'C = eps_r epsilon_0 A / d',
+      description: 'Computes capacitor value from dielectric constant, area, and spacing.',
+      priority: 9,
+      validate: (values) =>
+        validateAll(
+          positive(getScalar(values, 'relativePermittivity'), 'Relative permittivity'),
+          positive(getScalar(values, 'plateArea'), 'Plate area'),
+          positive(getScalar(values, 'distance'), 'Distance'),
+        ),
+      compute: (values) =>
+        scalar(
+          (getScalar(values, 'relativePermittivity') *
+            VACUUM_PERMITTIVITY *
+            getScalar(values, 'plateArea')) /
+            getScalar(values, 'distance'),
+        ),
+    },
+    {
+      id: 'relative-permittivity-from-capacitance-area-and-distance',
+      target: 'relativePermittivity',
+      inputs: ['capacitance', 'plateArea', 'distance'],
+      displayFormula: 'eps_r = Cd / (epsilon_0 A)',
+      description: 'Computes dielectric constant from capacitance geometry.',
+      priority: 9,
+      validate: (values) =>
+        validateAll(
+          positive(getScalar(values, 'capacitance'), 'Capacitance'),
+          positive(getScalar(values, 'plateArea'), 'Plate area'),
+          positive(getScalar(values, 'distance'), 'Distance'),
+        ),
+      compute: (values) =>
+        scalar(
+          (getScalar(values, 'capacitance') * getScalar(values, 'distance')) /
+            (VACUUM_PERMITTIVITY * getScalar(values, 'plateArea')),
+        ),
+    },
+    {
+      id: 'plate-area-from-capacitance-relative-permittivity-and-distance',
+      target: 'plateArea',
+      inputs: ['capacitance', 'relativePermittivity', 'distance'],
+      displayFormula: 'A = Cd / (eps_r epsilon_0)',
+      description: 'Computes plate area from capacitance, dielectric constant, and spacing.',
+      priority: 9,
+      validate: (values) =>
+        validateAll(
+          positive(getScalar(values, 'capacitance'), 'Capacitance'),
+          positive(getScalar(values, 'relativePermittivity'), 'Relative permittivity'),
+          positive(getScalar(values, 'distance'), 'Distance'),
+        ),
+      compute: (values) =>
+        scalar(
+          (getScalar(values, 'capacitance') * getScalar(values, 'distance')) /
+            (getScalar(values, 'relativePermittivity') * VACUUM_PERMITTIVITY),
+        ),
+    },
+    {
+      id: 'distance-from-capacitance-relative-permittivity-and-area',
+      target: 'distance',
+      inputs: ['capacitance', 'relativePermittivity', 'plateArea'],
+      displayFormula: 'd = eps_r epsilon_0 A / C',
+      description: 'Computes plate spacing from capacitance, dielectric constant, and area.',
+      priority: 9,
+      validate: (values) =>
+        validateAll(
+          positive(getScalar(values, 'capacitance'), 'Capacitance'),
+          positive(getScalar(values, 'relativePermittivity'), 'Relative permittivity'),
+          positive(getScalar(values, 'plateArea'), 'Plate area'),
+        ),
+      compute: (values) =>
+        scalar(
+          (getScalar(values, 'relativePermittivity') *
+            VACUUM_PERMITTIVITY *
+            getScalar(values, 'plateArea')) /
+            getScalar(values, 'capacitance'),
+        ),
+    },
+  ]),
+  family('dielectric-breakdown-voltage', 'Breakdown field and maximum voltage', '10', [
+    {
+      id: 'voltage-from-dielectric-strength-and-distance',
+      target: 'voltage',
+      inputs: ['dielectricStrength', 'distance'],
+      displayFormula: 'Vmax = Emax d',
+      description: 'Computes the maximum safe voltage from dielectric strength and spacing.',
+      priority: 8,
+      compute: (values) =>
+        scalar(getScalar(values, 'dielectricStrength') * getScalar(values, 'distance')),
+    },
+    {
+      id: 'dielectric-strength-from-voltage-and-distance',
+      target: 'dielectricStrength',
+      inputs: ['voltage', 'distance'],
+      displayFormula: 'Emax = Vmax / d',
+      description: 'Computes dielectric strength from maximum voltage and spacing.',
+      priority: 8,
+      validate: (values) => nonZero(getScalar(values, 'distance'), 'Distance'),
+      compute: (values) => scalar(getScalar(values, 'voltage') / getScalar(values, 'distance')),
+    },
+    {
+      id: 'distance-from-voltage-and-dielectric-strength',
+      target: 'distance',
+      inputs: ['voltage', 'dielectricStrength'],
+      displayFormula: 'd = Vmax / Emax',
+      description: 'Computes required spacing from maximum voltage and dielectric strength.',
+      priority: 8,
+      validate: (values) => nonZero(getScalar(values, 'dielectricStrength'), 'Dielectric strength'),
+      compute: (values) => scalar(getScalar(values, 'voltage') / getScalar(values, 'dielectricStrength')),
+    },
+  ]),
+  family('charge-voltage-capacitance', 'Charge, voltage, and capacitance', '10', [
     {
       id: 'charge-from-capacitance-and-voltage',
       target: 'charge',
@@ -1388,7 +1829,7 @@ export const formulaFamilies: FormulaFamily[] = [
       compute: (values) => scalar(getScalar(values, 'charge') / getScalar(values, 'capacitance')),
     },
   ]),
-  family('parallel-capacitors', 'Parallel capacitors', '14', [
+  family('parallel-capacitors', 'Parallel capacitors', '10', [
     {
       id: 'total-capacitance-parallel',
       target: 'totalCapacitance',
@@ -1404,7 +1845,7 @@ export const formulaFamilies: FormulaFamily[] = [
         scalar(getScalarList(values, 'parallelCapacitorList').reduce((total, entry) => total + entry, 0)),
     },
   ]),
-  family('series-capacitors', 'Series capacitors', '14', [
+  family('series-capacitors', 'Series capacitors', '10', [
     {
       id: 'total-capacitance-series',
       target: 'totalCapacitance',
@@ -1425,7 +1866,7 @@ export const formulaFamilies: FormulaFamily[] = [
       },
     },
   ]),
-  family('tau-rc', 'RC time constant', '14', [
+  family('tau-rc', 'RC time constant', '10', [
     {
       id: 'tau-from-r-and-c',
       target: 'timeConstant',
@@ -1456,7 +1897,7 @@ export const formulaFamilies: FormulaFamily[] = [
       compute: (values) => scalar(getScalar(values, 'timeConstant') / getScalar(values, 'resistance')),
     },
   ]),
-  family('tau-rl', 'RL time constant', '15', [
+  family('tau-rl', 'RL time constant', '11', [
     {
       id: 'tau-from-l-and-r',
       target: 'timeConstant',
@@ -1487,7 +1928,7 @@ export const formulaFamilies: FormulaFamily[] = [
       compute: (values) => scalar(getScalar(values, 'inductance') / getScalar(values, 'timeConstant')),
     },
   ]),
-  family('rc-charging', 'RC charging equation', '14', [
+  family('rc-charging', 'RC charging equation', '10', [
     {
       id: 'rc-voltage-from-final-time-tau',
       target: 'rcChargingVoltage',
@@ -1547,7 +1988,266 @@ export const formulaFamilies: FormulaFamily[] = [
         ),
     },
   ]),
-  family('rl-growth', 'RL growth equation', '15', [
+  family('rc-charging-current', 'RC charging current', '10', [
+    {
+      id: 'rc-current-from-initial-time-and-tau',
+      target: 'rcChargingCurrent',
+      inputs: ['current', 'elapsedTime', 'timeConstant'],
+      displayFormula: 'iC(t) = Iinitial e^(-t/tau)',
+      description: 'Computes capacitor charging current at time t.',
+      priority: 8,
+      validate: (values) => positive(getScalar(values, 'timeConstant'), 'Time constant'),
+      compute: (values) =>
+        scalar(
+          getScalar(values, 'current') *
+            Math.exp(-getScalar(values, 'elapsedTime') / getScalar(values, 'timeConstant')),
+        ),
+    },
+    {
+      id: 'time-from-rc-current-initial-and-tau',
+      target: 'elapsedTime',
+      inputs: ['rcChargingCurrent', 'current', 'timeConstant'],
+      displayFormula: 't = -tau ln(iC / Iinitial)',
+      description: 'Computes elapsed time from capacitor charging current.',
+      priority: 8,
+      validate: (values) => {
+        const initialCurrent = getScalar(values, 'current')
+        const ratio = getScalar(values, 'rcChargingCurrent') / initialCurrent
+        return validateAll(
+          positive(getScalar(values, 'timeConstant'), 'Time constant'),
+          nonZero(initialCurrent, 'Initial current'),
+          ratio > 0 && ratio < 1
+            ? undefined
+            : 'iC / Iinitial must stay strictly between 0 and 1 for the inverse charging-current solve.',
+        )
+      },
+      compute: (values) =>
+        scalar(
+          -getScalar(values, 'timeConstant') *
+            Math.log(getScalar(values, 'rcChargingCurrent') / getScalar(values, 'current')),
+        ),
+    },
+    {
+      id: 'initial-current-from-rc-current-time-and-tau',
+      target: 'current',
+      inputs: ['rcChargingCurrent', 'elapsedTime', 'timeConstant'],
+      displayFormula: 'Iinitial = iC / e^(-t/tau)',
+      description: 'Computes initial charging current from the current at time t.',
+      priority: 8,
+      validate: (values) => positive(getScalar(values, 'timeConstant'), 'Time constant'),
+      compute: (values) =>
+        scalar(
+          getScalar(values, 'rcChargingCurrent') /
+            Math.exp(-getScalar(values, 'elapsedTime') / getScalar(values, 'timeConstant')),
+        ),
+    },
+  ]),
+  family('rc-discharging-voltage', 'RC discharging voltage', '10', [
+    {
+      id: 'rc-discharge-voltage-from-initial-time-and-tau',
+      target: 'rcDischargingVoltage',
+      inputs: ['voltage', 'elapsedTime', 'timeConstant'],
+      displayFormula: 'vC(t) = Vinitial e^(-t/tau)',
+      description: 'Computes capacitor discharging voltage at time t.',
+      priority: 8,
+      validate: (values) => positive(getScalar(values, 'timeConstant'), 'Time constant'),
+      compute: (values) =>
+        scalar(
+          getScalar(values, 'voltage') *
+            Math.exp(-getScalar(values, 'elapsedTime') / getScalar(values, 'timeConstant')),
+        ),
+    },
+    {
+      id: 'time-from-rc-discharge-voltage-initial-and-tau',
+      target: 'elapsedTime',
+      inputs: ['rcDischargingVoltage', 'voltage', 'timeConstant'],
+      displayFormula: 't = -tau ln(vC / Vinitial)',
+      description: 'Computes elapsed time from capacitor discharging voltage.',
+      priority: 8,
+      validate: (values) => {
+        const initialVoltage = getScalar(values, 'voltage')
+        const ratio = getScalar(values, 'rcDischargingVoltage') / initialVoltage
+        return validateAll(
+          positive(getScalar(values, 'timeConstant'), 'Time constant'),
+          nonZero(initialVoltage, 'Initial voltage'),
+          ratio > 0 && ratio < 1
+            ? undefined
+            : 'vC / Vinitial must stay strictly between 0 and 1 for the inverse discharging-voltage solve.',
+        )
+      },
+      compute: (values) =>
+        scalar(
+          -getScalar(values, 'timeConstant') *
+            Math.log(getScalar(values, 'rcDischargingVoltage') / getScalar(values, 'voltage')),
+        ),
+    },
+    {
+      id: 'initial-voltage-from-rc-discharge-voltage-time-and-tau',
+      target: 'voltage',
+      inputs: ['rcDischargingVoltage', 'elapsedTime', 'timeConstant'],
+      displayFormula: 'Vinitial = vC / e^(-t/tau)',
+      description: 'Computes initial capacitor voltage from the discharging voltage at time t.',
+      priority: 8,
+      validate: (values) => positive(getScalar(values, 'timeConstant'), 'Time constant'),
+      compute: (values) =>
+        scalar(
+          getScalar(values, 'rcDischargingVoltage') /
+            Math.exp(-getScalar(values, 'elapsedTime') / getScalar(values, 'timeConstant')),
+        ),
+    },
+  ]),
+  family('rc-discharging-current', 'RC discharging current', '10', [
+    {
+      id: 'rc-discharge-current-from-initial-time-and-tau',
+      target: 'rcDischargingCurrent',
+      inputs: ['current', 'elapsedTime', 'timeConstant'],
+      displayFormula: 'iC(t) = Iinitial e^(-t/tau)',
+      description: 'Computes capacitor discharging current at time t.',
+      priority: 8,
+      validate: (values) => positive(getScalar(values, 'timeConstant'), 'Time constant'),
+      compute: (values) =>
+        scalar(
+          getScalar(values, 'current') *
+            Math.exp(-getScalar(values, 'elapsedTime') / getScalar(values, 'timeConstant')),
+        ),
+    },
+    {
+      id: 'time-from-rc-discharge-current-initial-and-tau',
+      target: 'elapsedTime',
+      inputs: ['rcDischargingCurrent', 'current', 'timeConstant'],
+      displayFormula: 't = -tau ln(iC / Iinitial)',
+      description: 'Computes elapsed time from capacitor discharging current.',
+      priority: 8,
+      validate: (values) => {
+        const initialCurrent = getScalar(values, 'current')
+        const ratio = getScalar(values, 'rcDischargingCurrent') / initialCurrent
+        return validateAll(
+          positive(getScalar(values, 'timeConstant'), 'Time constant'),
+          nonZero(initialCurrent, 'Initial current'),
+          ratio > 0 && ratio < 1
+            ? undefined
+            : 'iC / Iinitial must stay strictly between 0 and 1 for the inverse discharging-current solve.',
+        )
+      },
+      compute: (values) =>
+        scalar(
+          -getScalar(values, 'timeConstant') *
+            Math.log(getScalar(values, 'rcDischargingCurrent') / getScalar(values, 'current')),
+        ),
+    },
+    {
+      id: 'initial-current-from-rc-discharge-current-time-and-tau',
+      target: 'current',
+      inputs: ['rcDischargingCurrent', 'elapsedTime', 'timeConstant'],
+      displayFormula: 'Iinitial = iC / e^(-t/tau)',
+      description: 'Computes initial discharging current from the current at time t.',
+      priority: 8,
+      validate: (values) => positive(getScalar(values, 'timeConstant'), 'Time constant'),
+      compute: (values) =>
+        scalar(
+          getScalar(values, 'rcDischargingCurrent') /
+            Math.exp(-getScalar(values, 'elapsedTime') / getScalar(values, 'timeConstant')),
+        ),
+    },
+  ]),
+  family('capacitor-energy', 'Energy stored by a capacitor', '10', [
+    {
+      id: 'energy-from-capacitance-and-voltage',
+      target: 'storedEnergy',
+      inputs: ['capacitance', 'voltage'],
+      displayFormula: 'W = 0.5 C V^2',
+      description: 'Computes stored energy from capacitance and voltage.',
+      priority: 7,
+      validate: (values) => positive(getScalar(values, 'capacitance'), 'Capacitance'),
+      compute: (values) =>
+        scalar(0.5 * getScalar(values, 'capacitance') * getScalar(values, 'voltage') ** 2),
+    },
+    {
+      id: 'energy-from-charge-and-voltage',
+      target: 'storedEnergy',
+      inputs: ['charge', 'voltage'],
+      displayFormula: 'W = 0.5 QV',
+      description: 'Computes stored energy from charge and voltage.',
+      priority: 7,
+      compute: (values) => scalar(0.5 * getScalar(values, 'charge') * getScalar(values, 'voltage')),
+    },
+    {
+      id: 'energy-from-charge-and-capacitance',
+      target: 'storedEnergy',
+      inputs: ['charge', 'capacitance'],
+      displayFormula: 'W = Q^2 / (2C)',
+      description: 'Computes stored energy from charge and capacitance.',
+      priority: 7,
+      validate: (values) => positive(getScalar(values, 'capacitance'), 'Capacitance'),
+      compute: (values) =>
+        scalar(getScalar(values, 'charge') ** 2 / (2 * getScalar(values, 'capacitance'))),
+    },
+    {
+      id: 'voltage-from-energy-and-capacitance',
+      target: 'voltage',
+      inputs: ['storedEnergy', 'capacitance'],
+      displayFormula: 'V = sqrt(2W / C)',
+      description: 'Computes voltage from stored energy and capacitance.',
+      priority: 7,
+      validate: (values) =>
+        validateAll(
+          positive(getScalar(values, 'storedEnergy'), 'Stored energy'),
+          positive(getScalar(values, 'capacitance'), 'Capacitance'),
+        ),
+      compute: (values) =>
+        scalar(
+          Math.sqrt((2 * getScalar(values, 'storedEnergy')) / getScalar(values, 'capacitance')),
+        ),
+    },
+    {
+      id: 'capacitance-from-energy-and-voltage',
+      target: 'capacitance',
+      inputs: ['storedEnergy', 'voltage'],
+      displayFormula: 'C = 2W / V^2',
+      description: 'Computes capacitance from stored energy and voltage.',
+      priority: 7,
+      validate: (values) =>
+        validateAll(
+          positive(getScalar(values, 'storedEnergy'), 'Stored energy'),
+          nonZero(getScalar(values, 'voltage'), 'Voltage'),
+        ),
+      compute: (values) =>
+        scalar((2 * getScalar(values, 'storedEnergy')) / getScalar(values, 'voltage') ** 2),
+    },
+    {
+      id: 'charge-from-energy-and-voltage',
+      target: 'charge',
+      inputs: ['storedEnergy', 'voltage'],
+      displayFormula: 'Q = 2W / V',
+      description: 'Computes charge from stored energy and voltage.',
+      priority: 7,
+      validate: (values) =>
+        validateAll(
+          positive(getScalar(values, 'storedEnergy'), 'Stored energy'),
+          nonZero(getScalar(values, 'voltage'), 'Voltage'),
+        ),
+      compute: (values) =>
+        scalar((2 * getScalar(values, 'storedEnergy')) / getScalar(values, 'voltage')),
+    },
+    {
+      id: 'charge-from-energy-and-capacitance',
+      target: 'charge',
+      inputs: ['storedEnergy', 'capacitance'],
+      displayFormula: 'Q = sqrt(2WC)',
+      description: 'Computes charge from stored energy and capacitance.',
+      priority: 7,
+      validate: (values) =>
+        validateAll(
+          positive(getScalar(values, 'storedEnergy'), 'Stored energy'),
+          positive(getScalar(values, 'capacitance'), 'Capacitance'),
+        ),
+      compute: (values) =>
+        scalar(
+          Math.sqrt(2 * getScalar(values, 'storedEnergy') * getScalar(values, 'capacitance')),
+        ),
+    },
+  ]),
+  family('rl-growth', 'RL growth equation', '11', [
     {
       id: 'rl-current-from-final-time-tau',
       target: 'rlGrowthCurrent',
@@ -1607,7 +2307,7 @@ export const formulaFamilies: FormulaFamily[] = [
         ),
     },
   ]),
-  family('inductor-voltage', 'Inductor voltage', '15', [
+  family('inductor-voltage', 'Inductor voltage', '11', [
     {
       id: 'voltage-from-l-and-didt',
       target: 'voltage',
@@ -1638,7 +2338,7 @@ export const formulaFamilies: FormulaFamily[] = [
       compute: (values) => scalar(getScalar(values, 'voltage') / getScalar(values, 'inductance')),
     },
   ]),
-  family('induced-emf', 'Induced emf', '15', [
+  family('induced-emf', 'Induced emf', '11', [
     {
       id: 'induced-voltage-from-turns-and-flux-rate',
       target: 'inducedVoltage',

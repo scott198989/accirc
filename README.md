@@ -1,6 +1,6 @@
 # AC Circuits Formula Selector and Solver
 
-A local-first deterministic circuits app aimed at the math problem families in Chapters 11 through 17, plus the audited study-guide formulas that support them.
+A local-first deterministic circuits app aimed at the math problem families in Chapters 10, 11, and 13 through 17, plus the audited study-guide formulas that support them.
 
 The app is intentionally deterministic:
 
@@ -16,6 +16,10 @@ It now also includes guided workflows so users do not have to think in raw symbo
 - as-labeled variable mode for textbook symbols like `R`, `XL1`, `XL2`, `XC`, `L2`, `C`, `f`, and `E`
 - series-circuit diagram mode for component-based impedance, phase, power-factor, current, and voltage questions
 - parallel-circuit diagram mode for Chapter 16 style admittance, impedance, current, power-factor, and branch-current questions
+- series-parallel reduction mode for Chapter 17 networks with nested series and parallel blocks
+- light, dark, and system theme modes for local desktop use
+
+Chapter 12 magnetic-circuit workflows are still intentionally not implemented. The current app refuses unsupported textbook coverage instead of pretending to solve it.
 
 ## Local runtime
 
@@ -46,6 +50,7 @@ src/
     guidedMathGoals.ts        Chapter-oriented question goals mapped to deterministic solve targets
     guidedParallelCircuit.ts  Plain-English branch workflow for parallel AC solving
     guidedSeriesImpedance.ts  Plain-English component workflow for series impedance
+    guidedSeriesParallelNetwork.ts Recursive Chapter 17 reduction workflow for nested AC networks
     guidedSymbolProblem.ts    Textbook-variable workflow for symbols like R, XL1, XL2, XC, L, C, f, and E
   App.tsx              Local UI prototype
   index.css            App styling
@@ -67,6 +72,10 @@ The app has two local workflows:
   - users enter components in plain English: resistor, inductor, capacitor, frequency, and source voltage if needed
   - the app converts inductance/capacitance into reactance when needed
   - the app returns rectangular impedance, polar impedance, and an impedance diagram when applicable
+  - `Series-parallel network`
+  - best when a Chapter 17 problem has nested series and parallel blocks
+  - users build the topology as a reduction tree, then the app reduces each block deterministically
+  - the app returns the reduction steps plus node voltages and currents when a source voltage is provided
 - Formula mode
   - best when the user already knows the exact electrical quantities they want to enter
   - exposes the raw deterministic formula selector and trace output
@@ -75,13 +84,15 @@ The app has two local workflows:
 
 Current guided goals cover common math patterns from:
 
+- Chapter 10: electric field, plate geometry, dielectric constant, dielectric strength, capacitor current, charge, capacitor combinations, RC time constant, charging and discharging transients, stored energy
 - Chapter 11: RL time constant, RL current growth, inductor voltage, induced emf
 - Chapter 13: period, frequency, elapsed time, angular frequency, RMS and peak conversions, angle conversion
-- Chapter 14: capacitive reactance, charge/voltage/capacitance, capacitor combinations, RC time constant, RC charging
+- Chapter 14: capacitive reactance and capacitor phasor relationships
 - Chapter 15: inductive reactance, inductance recovery, power factor, real power, air-core coil inductance, and series RLC diagram-based solving
 - Chapter 16: conductance, susceptance, admittance, parallel source current, parallel power, and parallel RLC diagram-based solving
+- Chapter 17: series-parallel AC reduction, total impedance, source current, real power, and node-level phasor breakdowns
 
-Chapter 17 network-reduction workflows are the next deterministic expansion target. The current app already refuses to guess there rather than pretending to solve unsupported topologies.
+Chapter 12 magnetic-circuit workflows are the next deterministic expansion target. The current app already refuses to guess there rather than pretending to solve unsupported textbook topologies.
 
 ## Included formula families
 
@@ -101,12 +112,17 @@ The structured formula library includes:
 - `Z = R + j(XL - XC)`, `I = E/Z`, `VR = IR`, `E = VR + VL + VC`
 - `Vx = E(Zx/Zt)`
 - `Q = CV`, `C = Q/V`
+- `E = F/Q`, `E = kQ/d^2`, `E = V/d`
+- `eps_r = epsilon / epsilon_0`, `C = epsilon_0 A / d`, `C = epsilon A / d`, `C = eps_r epsilon_0 A / d`
+- `C = eps_r C0`, `Vmax = Emax d`
 - parallel and series capacitor equivalents
 - `tau = RC`, `tau = L/R`
-- RC charging and RL growth equations
+- RC charging, RC discharging, and RL growth equations
+- capacitor stored-energy formulas
 - polar/rectangular conversion
 - complex multiplication
 - Wheeler single-layer air-core coil formula
+- recursive series-parallel impedance reduction for Chapter 17 topologies
 
 Inverse solving is implemented only where the rearrangement is explicit and deterministic. Formulas with sign ambiguity or underdetermined inverses are not guessed.
 
@@ -154,6 +170,14 @@ Run the app:
 ```bash
 npm run dev
 ```
+
+Run the local browser version on a fixed localhost port:
+
+```bash
+npm run dev:local
+```
+
+On Windows you can also double-click `Start-ACCirc.cmd` in the project folder. It will install dependencies on first run, start the local server on `http://127.0.0.1:4173/`, and open your default browser automatically.
 
 Run tests:
 

@@ -13,6 +13,78 @@ export interface GuidedMathGoalDefinition {
 
 export const guidedMathGoals: GuidedMathGoalDefinition[] = [
   {
+    id: 'electric-field-from-force-and-charge',
+    chapter: '10',
+    section: 'Electrostatics',
+    label: 'Find electric field from force and charge',
+    description: 'Use this when the problem gives F and Q and asks for field strength.',
+    target: 'electricFieldStrength',
+    inputs: ['electricForce', 'charge'],
+  },
+  {
+    id: 'point-electric-field-from-charge-and-distance',
+    chapter: '10',
+    section: 'Electrostatics',
+    label: 'Find point-charge electric field from charge and distance',
+    description: 'Use this when the problem gives Q and distance from the charge.',
+    target: 'electricFieldStrength',
+    inputs: ['charge', 'distance'],
+  },
+  {
+    id: 'plate-electric-field-from-voltage-and-distance',
+    chapter: '10',
+    section: 'Electrostatics',
+    label: 'Find electric field from voltage and plate spacing',
+    description: 'Use this when the problem gives applied voltage and plate spacing.',
+    target: 'electricFieldStrength',
+    inputs: ['voltage', 'distance'],
+  },
+  {
+    id: 'air-capacitance-from-plate-geometry',
+    chapter: '10',
+    section: 'Capacitor geometry',
+    label: 'Find air-capacitor capacitance from plate area and spacing',
+    description: 'Use this for parallel-plate air capacitors when only A and d are given.',
+    target: 'capacitance',
+    inputs: ['plateArea', 'distance'],
+  },
+  {
+    id: 'capacitance-from-relative-permittivity-and-geometry',
+    chapter: '10',
+    section: 'Capacitor geometry',
+    label: 'Find capacitance from dielectric constant, area, and spacing',
+    description: 'Use this when the problem gives eps_r, A, and d.',
+    target: 'capacitance',
+    inputs: ['relativePermittivity', 'plateArea', 'distance'],
+  },
+  {
+    id: 'relative-permittivity-from-permittivity',
+    chapter: '10',
+    section: 'Capacitor geometry',
+    label: 'Find relative permittivity from permittivity',
+    description: 'Use this when the problem gives epsilon and asks for eps_r.',
+    target: 'relativePermittivity',
+    inputs: ['permittivity'],
+  },
+  {
+    id: 'capacitance-from-relative-permittivity-and-air-capacitance',
+    chapter: '10',
+    section: 'Capacitor geometry',
+    label: 'Find capacitance from dielectric constant and air capacitance',
+    description: 'Use this when the problem gives eps_r and the original air-capacitor value C0.',
+    target: 'capacitance',
+    inputs: ['relativePermittivity', 'airCapacitance'],
+  },
+  {
+    id: 'maximum-voltage-from-dielectric-strength-and-distance',
+    chapter: '10',
+    section: 'Dielectric limits',
+    label: 'Find maximum voltage from dielectric strength and spacing',
+    description: 'Use this when the problem asks for the breakdown-limited Vmax.',
+    target: 'voltage',
+    inputs: ['dielectricStrength', 'distance'],
+  },
+  {
     id: 'period-from-frequency',
     chapter: '13',
     section: 'Waveforms and frequency',
@@ -104,7 +176,7 @@ export const guidedMathGoals: GuidedMathGoalDefinition[] = [
   },
   {
     id: 'charge-from-capacitance-and-voltage',
-    chapter: '14',
+    chapter: '10',
     section: 'Capacitors',
     label: 'Find charge from capacitance and voltage',
     description: 'Use this when the problem gives C and V and asks for Q.',
@@ -112,8 +184,17 @@ export const guidedMathGoals: GuidedMathGoalDefinition[] = [
     inputs: ['capacitance', 'voltage'],
   },
   {
+    id: 'current-from-capacitance-and-dvdt',
+    chapter: '10',
+    section: 'Capacitor current',
+    label: 'Find capacitor current from capacitance and dv/dt',
+    description: 'Use this when the problem gives C and the voltage rate of change.',
+    target: 'current',
+    inputs: ['capacitance', 'dvDt'],
+  },
+  {
     id: 'parallel-capacitance-total',
-    chapter: '14',
+    chapter: '10',
     section: 'Capacitor combinations',
     label: 'Find total capacitance of capacitors in parallel',
     description: 'Enter all capacitor values in one comma-separated list.',
@@ -123,7 +204,7 @@ export const guidedMathGoals: GuidedMathGoalDefinition[] = [
   },
   {
     id: 'series-capacitance-total',
-    chapter: '14',
+    chapter: '10',
     section: 'Capacitor combinations',
     label: 'Find total capacitance of capacitors in series',
     description: 'Enter all capacitor values in one comma-separated list.',
@@ -133,7 +214,7 @@ export const guidedMathGoals: GuidedMathGoalDefinition[] = [
   },
   {
     id: 'tau-from-r-and-c',
-    chapter: '14',
+    chapter: '10',
     section: 'RC transients',
     label: 'Find RC time constant from resistance and capacitance',
     description: 'Use this when the problem asks for tau in an RC circuit.',
@@ -142,7 +223,7 @@ export const guidedMathGoals: GuidedMathGoalDefinition[] = [
   },
   {
     id: 'rc-charging-voltage',
-    chapter: '14',
+    chapter: '10',
     section: 'RC transients',
     label: 'Find capacitor charging voltage at time t',
     description: 'Use this when the problem gives final voltage, time, and tau.',
@@ -150,9 +231,45 @@ export const guidedMathGoals: GuidedMathGoalDefinition[] = [
     inputs: ['finalVoltage', 'elapsedTime', 'timeConstant'],
   },
   {
+    id: 'rc-charging-current',
+    chapter: '10',
+    section: 'RC transients',
+    label: 'Find capacitor charging current at time t',
+    description: 'Use this when the problem gives the initial charging current, time, and tau.',
+    target: 'rcChargingCurrent',
+    inputs: ['current', 'elapsedTime', 'timeConstant'],
+  },
+  {
+    id: 'rc-discharging-voltage',
+    chapter: '10',
+    section: 'RC transients',
+    label: 'Find capacitor discharging voltage at time t',
+    description: 'Use this when the problem gives the initial voltage, time, and tau.',
+    target: 'rcDischargingVoltage',
+    inputs: ['voltage', 'elapsedTime', 'timeConstant'],
+  },
+  {
+    id: 'rc-discharging-current',
+    chapter: '10',
+    section: 'RC transients',
+    label: 'Find capacitor discharging current at time t',
+    description: 'Use this when the problem gives the initial discharging current, time, and tau.',
+    target: 'rcDischargingCurrent',
+    inputs: ['current', 'elapsedTime', 'timeConstant'],
+  },
+  {
+    id: 'stored-energy-from-capacitance-and-voltage',
+    chapter: '10',
+    section: 'Capacitor energy',
+    label: 'Find stored energy from capacitance and voltage',
+    description: 'Use this when the problem gives C and V and asks for stored energy.',
+    target: 'storedEnergy',
+    inputs: ['capacitance', 'voltage'],
+  },
+  {
     id: 'inductive-reactance-from-frequency-and-inductance',
-    chapter: '15',
-    section: 'Series AC building blocks',
+    chapter: '14',
+    section: 'Basic elements and phasors',
     label: 'Find inductive reactance from frequency and inductance',
     description: 'Use this when the problem gives f and L and asks for XL.',
     target: 'inductiveReactance',
@@ -160,8 +277,8 @@ export const guidedMathGoals: GuidedMathGoalDefinition[] = [
   },
   {
     id: 'inductance-from-reactance-and-frequency',
-    chapter: '15',
-    section: 'Series AC building blocks',
+    chapter: '14',
+    section: 'Basic elements and phasors',
     label: 'Find inductance from reactance and frequency',
     description: 'Use this when the problem gives XL and f and asks for L.',
     target: 'inductance',
@@ -169,8 +286,8 @@ export const guidedMathGoals: GuidedMathGoalDefinition[] = [
   },
   {
     id: 'power-factor-from-phase-angle',
-    chapter: '15',
-    section: 'Series AC power',
+    chapter: '14',
+    section: 'Average power and power factor',
     label: 'Find power factor from phase angle',
     description: 'Use this when the problem gives phi and asks for pf.',
     target: 'powerFactor',
@@ -321,6 +438,24 @@ export const guidedMathGoalGroups = guidedMathGoals.reduce<
 
   return groups
 }, [])
+  .sort((left, right) => {
+    const chapterOrder: Record<string, number> = {
+      '10': 10,
+      '11': 11,
+      '13': 13,
+      '14': 14,
+      '15': 15,
+      '16': 16,
+    }
+    const leftChapter = chapterOrder[left.goals[0]?.chapter ?? '999'] ?? 999
+    const rightChapter = chapterOrder[right.goals[0]?.chapter ?? '999'] ?? 999
+
+    if (leftChapter !== rightChapter) {
+      return leftChapter - rightChapter
+    }
+
+    return left.label.localeCompare(right.label)
+  })
 
 export function makeGuidedMathRows(goal: GuidedMathGoalDefinition): SolverInputRow[] {
   return goal.inputs.map((quantityId) => ({
