@@ -1,11 +1,17 @@
 import {
   formatQuantityInBaseUnit,
+  formatQuantityPolar,
   formatQuantitySmart,
   quantityMap,
   type SolveResult,
 } from '../../core'
-import type { GuidedMathGoalDefinition } from '../guidedMathGoals'
-import type { GuidedParallelCircuitResult } from '../guidedParallelCircuit'
+import type { GuidedMathGoalDefinition, GuidedMathResult } from '../guidedMathGoals'
+import type {
+  GuidedWaveformExpressionDetail,
+  GuidedWaveformExpressionResult,
+  GuidedWaveformExpressionSolvedResult,
+  GuidedWaveformExpressionStep,
+} from '../guidedWaveformExpressions'
 import type {
   GuidedComponentKind,
   GuidedComputedValue,
@@ -17,7 +23,6 @@ import type {
   GuidedSeriesParallelResult,
   GuidedSeriesParallelTopology,
 } from '../guidedSeriesParallelNetwork'
-import type { GuidedSymbolProblemResult, GuidedSymbolTopology } from '../guidedSymbolProblem'
 import {
   defaultSeriesParallelComponentLabel,
   defaultSeriesParallelGroupLabel,
@@ -27,7 +32,6 @@ import {
   unitsForGuided,
   valueModesForKind,
   type GuidedSeriesParallelNodeUpdates,
-  type GuidedSymbolPart,
   type GuidedWorkflow,
 } from './appShell'
 
@@ -35,82 +39,35 @@ export function GuidedResultsPanel({
   guidedMathResult,
   guidedResult,
   guidedWorkflow,
-  onSelectSymbolPart,
-  parallelResult,
   selectedMathGoal,
-  selectedSymbolPartId,
   seriesParallelResult,
-  symbolParts,
-  symbolTopology,
 }: {
-  guidedMathResult: SolveResult | null
+  guidedMathResult: GuidedMathResult | null
   guidedResult: GuidedSeriesImpedanceResult | null
   guidedWorkflow: GuidedWorkflow
-  onSelectSymbolPart: (partId: string) => void
-  parallelResult: GuidedParallelCircuitResult | null
   selectedMathGoal: GuidedMathGoalDefinition
-  selectedSymbolPartId: string
   seriesParallelResult: GuidedSeriesParallelResult | null
-  symbolParts: GuidedSymbolPart[]
-  symbolTopology: GuidedSymbolTopology
 }) {
-  const selectedSymbolPart =
-    symbolParts.find((part) => part.id === selectedSymbolPartId) ?? symbolParts[0]
-
   return (
     <section className="card results">
       <div className="card__header">
         <div>
           <p className="eyebrow">
-            {guidedWorkflow === 'chapter-goal' ? 'Chapter Goal Output' : 'Guided Output'}
+            {guidedWorkflow === 'chapter-goal' ? 'Quiz Goal Output' : 'Guided Output'}
           </p>
           <h2>
             {guidedWorkflow === 'chapter-goal'
               ? 'Deterministic formula trail'
               : 'What the app figured out'}
           </h2>
-          {guidedWorkflow === 'symbol-builder' && selectedSymbolPart && <p>{selectedSymbolPart.label}</p>}
         </div>
       </div>
 
       {guidedWorkflow === 'chapter-goal' ? (
         <GuidedMathResultPanel goal={selectedMathGoal} result={guidedMathResult} />
-      ) : guidedWorkflow === 'symbol-builder' ? (
-        <>
-          <GuidedSymbolPartOverview
-            parts={symbolParts}
-            selectedPartId={selectedSymbolPartId}
-            onSelect={onSelectSymbolPart}
-          />
-
-          {symbolTopology === 'parallel' ? (
-            <GuidedParallelResultPanel
-              emptyMessage={`Pick ${selectedSymbolPart?.label ?? 'a part'}, enter the labeled variables from the problem, and run the solve.`}
-              result={
-                selectedSymbolPart?.result?.topology === 'parallel'
-                  ? selectedSymbolPart.result.result
-                  : null
-              }
-            />
-          ) : (
-            <GuidedSeriesResultPanel
-              emptyMessage={`Pick ${selectedSymbolPart?.label ?? 'a part'}, enter the labeled variables from the problem, and run the solve.`}
-              result={
-                selectedSymbolPart?.result?.topology === 'series'
-                  ? selectedSymbolPart.result.result
-                  : null
-              }
-            />
-          )}
-        </>
-      ) : guidedWorkflow === 'parallel-builder' ? (
-        <GuidedParallelResultPanel
-          emptyMessage="Select a goal, enter the parallel branches you see, and run the guided solve."
-          result={parallelResult}
-        />
       ) : guidedWorkflow === 'series-parallel-builder' ? (
         <GuidedSeriesParallelResultPanel
-          emptyMessage="Build the series-parallel network, enter frequency or source voltage when needed, and run the Chapter 17 solve."
+          emptyMessage="Build the mixed network, enter frequency or source voltage when needed, and run the solve."
           result={seriesParallelResult}
         />
       ) : (
@@ -191,6 +148,10 @@ export function FormulaResultPanel({ formulaResult }: { formulaResult: SolveResu
               {formulaResult.steps.length} step(s).
             </p>
           </div>
+
+          {formulaResult.value.kind === 'complex' && (
+            <ComplexFormsPanel quantityId={formulaResult.target} value={formulaResult.value} />
+          )}
 
           <FormulaTrace result={formulaResult} />
         </>
@@ -502,61 +463,61 @@ function GuidedSeriesResultPanel({
   )
 }
 
-function GuidedSymbolPartOverview({
-  parts,
-  selectedPartId,
-  onSelect,
-}: {
-  parts: GuidedSymbolPart[]
-  selectedPartId: string
-  onSelect: (partId: string) => void
-}) {
-  if (parts.length < 2 && parts.every((part) => !part.result)) {
-    return null
-  }
-
-  return (
-    <div className="list-stack">
-      {parts.map((part) => {
-        const summary = summarizeGuidedSymbolPart(part.result)
-
-        return (
-          <article
-            className={
-              part.id === selectedPartId ? 'detail-card detail-card--selected' : 'detail-card'
-            }
-            key={part.id}
-          >
-            <div className="detail-card__header">
-              <div>
-                <p className="detail-card__eyebrow">Problem part</p>
-                <h3>{part.label}</h3>
-              </div>
-              <button className="ghost-button" onClick={() => onSelect(part.id)} type="button">
-                {part.id === selectedPartId ? 'Viewing details' : 'View details'}
-              </button>
-            </div>
-            <p className="result-line">{summary.primary}</p>
-            {summary.secondary && <p className="part-summary__detail">{summary.secondary}</p>}
-          </article>
-        )
-      })}
-    </div>
-  )
-}
-
 function GuidedMathResultPanel({
   goal,
   result,
 }: {
   goal: GuidedMathGoalDefinition
-  result: SolveResult | null
+  result: GuidedMathResult | null
 }) {
   if (!result) {
     return (
       <div className="empty-state">
-        <p>Pick a chapter goal, enter the values the problem gives you, and solve.</p>
+        <p>Pick a quiz math goal, enter the values the problem gives you, and solve.</p>
       </div>
+    )
+  }
+
+  if (isGuidedWaveformExpressionResult(result)) {
+    if (result.status === 'invalid') {
+      return <ResultBanner tone="warning" title="Input issue" body={result.message} />
+    }
+
+    if (result.status === 'incomplete') {
+      return <ResultBanner tone="warning" title="Need more information" body={result.message} />
+    }
+
+    if (!isSolvedGuidedWaveformExpressionResult(result)) {
+      return null
+    }
+
+    return (
+      <>
+        <div className="answer-panel">
+          <p className="detail-card__eyebrow">Quiz math answer</p>
+          <h3>{result.expression}</h3>
+          <p>{result.note}</p>
+        </div>
+
+        <div className="detail-grid detail-grid--reference">
+          {result.details.map((detail: GuidedWaveformExpressionDetail) => (
+            <article className="detail-card" key={`${result.answerLabel}-${detail.label}`}>
+              <p className="detail-card__eyebrow">{detail.label}</p>
+              <h3>{detail.value}</h3>
+            </article>
+          ))}
+        </div>
+
+        <div className="list-stack">
+          {result.steps.map((step: GuidedWaveformExpressionStep) => (
+            <article className="detail-card" key={`${result.answerLabel}-${step.formula}`}>
+              <p className="detail-card__eyebrow">Conversion step</p>
+              <h3>{step.formula}</h3>
+              <p>{step.explanation}</p>
+            </article>
+          ))}
+        </div>
+      </>
     )
   }
 
@@ -606,7 +567,7 @@ function GuidedMathResultPanel({
   return (
     <>
       <div className="answer-panel">
-        <p className="detail-card__eyebrow">Chapter {goal.chapter} goal answer</p>
+        <p className="detail-card__eyebrow">Quiz math answer</p>
         <h3>
           {goal.label}: {formatQuantitySmart(result.target, result.value)}
         </h3>
@@ -615,102 +576,51 @@ function GuidedMathResultPanel({
         </p>
       </div>
 
+      {result.value.kind === 'complex' && (
+        <ComplexFormsPanel quantityId={result.target} value={result.value} />
+      )}
+
       <FormulaTrace result={result} />
     </>
   )
 }
 
-function GuidedParallelResultPanel({
-  result,
-  emptyMessage,
+function ComplexFormsPanel({
+  quantityId,
+  value,
 }: {
-  result: GuidedParallelCircuitResult | null
-  emptyMessage: string
+  quantityId: keyof typeof quantityMap
+  value: Extract<SolveResult, { status: 'solved' }>['value']
 }) {
-  if (!result) {
-    return (
-      <div className="empty-state">
-        <p>{emptyMessage}</p>
-      </div>
-    )
-  }
-
-  if (result.status === 'invalid') {
-    return <ResultBanner tone="warning" title="Need a clearer input" body={result.message} />
-  }
-
-  if (result.output.result.status !== 'solved') {
+  if (value.kind !== 'complex') {
     return null
   }
 
   return (
-    <>
-      <div className="answer-panel">
-        <p className="detail-card__eyebrow">{result.output.label}</p>
-        <h3>{formatQuantitySmart(result.output.quantityId, result.output.result.value)}</h3>
-        {result.output.secondaryText && <p>{result.output.secondaryText}</p>}
-      </div>
+    <div className="detail-grid">
+      <article className="detail-card">
+        <p className="detail-card__eyebrow">Rectangular form</p>
+        <h3>{formatQuantitySmart(quantityId, value)}</h3>
+      </article>
 
-      <div className="detail-grid">
-        <article className="detail-card">
-          <p className="detail-card__eyebrow">Totals the app built</p>
-          <p>G total = {formatQuantityInBaseUnit('conductance', toScalar(result.totals.conductance))}</p>
-          <p>
-            BL total ={' '}
-            {formatQuantityInBaseUnit(
-              'inductiveSusceptance',
-              toScalar(result.totals.inductiveSusceptance),
-            )}
-          </p>
-          <p>
-            BC total ={' '}
-            {formatQuantityInBaseUnit(
-              'capacitiveSusceptance',
-              toScalar(result.totals.capacitiveSusceptance),
-            )}
-          </p>
-          <p>
-            B net = {formatQuantityInBaseUnit('netSusceptance', toScalar(result.totals.netSusceptance))}
-          </p>
-        </article>
-
-        <article className="detail-card">
-          <p className="detail-card__eyebrow">Admittance diagram</p>
-          <AdmittanceDiagram
-            conductance={result.totals.conductance}
-            susceptance={result.totals.netSusceptance}
-          />
-        </article>
-      </div>
-
-      <div className="detail-grid detail-grid--reference">
-        <ComputedValueCard value={result.reference.admittanceRectangular} />
-        <ComputedValueCard value={result.reference.admittanceMagnitude} />
-        <ComputedValueCard value={result.reference.admittanceAngle} />
-        <ComputedValueCard value={result.reference.impedanceRectangular} />
-        <ComputedValueCard value={result.reference.impedanceMagnitude} />
-        <ComputedValueCard value={result.reference.powerFactor} />
-        {result.reference.sourceCurrent && <ComputedValueCard value={result.reference.sourceCurrent} />}
-        {result.reference.realPower && <ComputedValueCard value={result.reference.realPower} />}
-        {result.reference.resistorCurrent && <ComputedValueCard value={result.reference.resistorCurrent} />}
-        {result.reference.inductorCurrent && <ComputedValueCard value={result.reference.inductorCurrent} />}
-        {result.reference.capacitorCurrent && <ComputedValueCard value={result.reference.capacitorCurrent} />}
-      </div>
-
-      <FormulaTrace result={result.output.result} />
-
-      <div className="list-stack">
-        {result.contributions.map((contribution) => (
-          <article className="detail-card" key={contribution.id}>
-            <p className="detail-card__eyebrow">{contribution.label}</p>
-            <h3>{contribution.entered}</h3>
-            <p>{contribution.contributesAs}</p>
-            {contribution.formulaUsed && <p>Formula used: {contribution.formulaUsed}</p>}
-          </article>
-        ))}
-      </div>
-    </>
+      <article className="detail-card">
+        <p className="detail-card__eyebrow">Polar form</p>
+        <h3>{formatQuantityPolar(quantityId, value)}</h3>
+      </article>
+    </div>
   )
+}
+
+function isGuidedWaveformExpressionResult(
+  result: GuidedMathResult,
+): result is GuidedWaveformExpressionResult {
+  return 'kind' in result && result.kind === 'waveform-expression'
+}
+
+function isSolvedGuidedWaveformExpressionResult(
+  result: GuidedWaveformExpressionResult,
+): result is GuidedWaveformExpressionSolvedResult {
+  return result.status === 'solved'
 }
 
 function GuidedSeriesParallelResultPanel({
@@ -766,8 +676,8 @@ function GuidedSeriesParallelResultPanel({
           <p className="detail-card__eyebrow">Reduction summary</p>
           <p>{result.reductions.length} group reduction step(s) were evaluated deterministically.</p>
           <p>
-            Series groups add impedances directly. Parallel groups sum branch admittances and
-            then invert back to impedance.
+            Series groups add impedances directly. Parallel groups sum branch admittances and then
+            invert back to impedance.
           </p>
           {result.nodeSummaries.length === 0 && (
             <p>Enter a source voltage to expand node voltages and currents after the reduction.</p>
@@ -811,38 +721,6 @@ function GuidedSeriesParallelResultPanel({
   )
 }
 
-function summarizeGuidedSymbolPart(result: GuidedSymbolProblemResult | null): {
-  primary: string
-  secondary?: string
-} {
-  if (!result) {
-    return {
-      primary: 'Not solved yet',
-      secondary: 'Enter the labeled variables for this part and run the solve.',
-    }
-  }
-
-  const solve = result.result
-  if (solve.status === 'invalid') {
-    return {
-      primary: 'Need clearer input',
-      secondary: solve.message,
-    }
-  }
-
-  if (solve.output.result.status !== 'solved') {
-    return {
-      primary: solve.output.label,
-      secondary: 'The deterministic rules did not produce a final answer for this part.',
-    }
-  }
-
-  return {
-    primary: formatQuantitySmart(solve.output.quantityId, solve.output.result.value),
-    secondary: solve.output.secondaryText ?? solve.output.label,
-  }
-}
-
 function FormulaTrace({ result }: { result: SolveResult }) {
   if (result.status !== 'solved') {
     return null
@@ -853,7 +731,10 @@ function FormulaTrace({ result }: { result: SolveResult }) {
       {result.steps.map((step) => (
         <article className="detail-card" key={`${step.formulaId}-${step.target}`}>
           <div className="detail-card__header">
-            <p className="detail-card__eyebrow">Chapter {step.chapter} - {step.familyLabel}</p>
+            <div>
+              <p className="detail-card__eyebrow">Formula family</p>
+              <h3>{step.familyLabel}</h3>
+            </div>
             <strong>{step.formula}</strong>
           </div>
           <p>{step.whySelected}</p>
@@ -907,43 +788,6 @@ function ImpedanceDiagram({
       <text x={(originX + x) / 2} y={originY - 10}>R</text>
       <text x={x + 8} y={(originY + y) / 2}>{reactance >= 0 ? '+X' : '-X'}</text>
       <text x={(originX + x) / 2 + 10} y={(originY + y) / 2 - 10}>Z</text>
-    </svg>
-  )
-}
-
-function AdmittanceDiagram({
-  conductance,
-  susceptance,
-}: {
-  conductance: number
-  susceptance: number
-}) {
-  const width = 280
-  const height = 200
-  const originX = 36
-  const originY = 152
-  const usableX = 190
-  const usableY = 96
-  const scaleBase = Math.max(Math.abs(conductance), Math.abs(susceptance), 1e-3)
-  const scale = Math.min(usableX / scaleBase, usableY / scaleBase)
-  const x = originX + conductance * scale
-  const y = originY - susceptance * scale
-  const susceptanceLabel = susceptance >= 0 ? 'B (+)' : 'B (-)'
-
-  return (
-    <svg className="diagram" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Admittance diagram">
-      <line x1={originX} y1={originY} x2={originX + usableX} y2={originY} />
-      <line x1={originX} y1={originY + usableY / 2} x2={originX} y2={originY - usableY} />
-      <line x1={originX} y1={originY} x2={x} y2={originY} className="diagram__axis" />
-      <line x1={x} y1={originY} x2={x} y2={y} className="diagram__reactance" />
-      <line x1={originX} y1={originY} x2={x} y2={y} className="diagram__impedance" />
-      <circle cx={originX} cy={originY} r="3" />
-      <circle cx={x} cy={y} r="3" />
-      <text x={originX + usableX - 12} y={originY - 8}>G</text>
-      <text x={originX + 8} y={originY - usableY + 10}>{susceptanceLabel}</text>
-      <text x={(originX + x) / 2} y={originY - 10}>G</text>
-      <text x={x + 8} y={(originY + y) / 2}>{susceptance >= 0 ? '+B' : '-B'}</text>
-      <text x={(originX + x) / 2 + 10} y={(originY + y) / 2 - 10}>Y</text>
     </svg>
   )
 }

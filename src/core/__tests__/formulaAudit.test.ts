@@ -42,7 +42,9 @@ const representativeKnowns: KnownValueMap = {
   rmsCurrent: scalar(10),
   peakVoltage: scalar(169.705627485),
   rmsVoltage: scalar(120),
+  waveformPhaseAngle: scalar((-80 * Math.PI) / 180),
   inductiveImpedance: complex(0, 18.8495559215),
+  capacitiveImpedance: complex(0, -530.516476973),
   inductorVoltagePhasor: complex(0, 188.495559215),
   capacitorVoltagePhasor: complex(0, -5305.16476973),
   impedanceComplex: complex(12, -511.667213806),
@@ -205,6 +207,7 @@ describe('formula audit', () => {
     expect(quantityMap.inductiveReactance.chapter).toBe('14')
     expect(quantityMap.powerFactor.chapter).toBe('14')
     expect(quantityMap.impedanceComplex.chapter).toBe('15')
+    expect(quantityMap.waveformPhaseAngle.chapter).toBe('15')
     expect(quantityMap.inducedVoltage.chapter).toBe('11')
     expect(quantityMap.turnCount.chapter).toBe('11')
     expect(quantityMap.phasorCurrent.chapter).toBe('15')

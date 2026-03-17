@@ -1,5 +1,5 @@
 import { quantityDefinitions, quantityMap, type QuantityId, type SolverInputRow } from '../../core'
-import { guidedMathGoalGroups, guidedMathGoals } from '../guidedMathGoals'
+import { guidedMathGoals as allGuidedMathGoals } from '../guidedMathGoals'
 import {
   updateSeriesParallelNode,
   makeSeriesParallelGroup,
@@ -7,27 +7,16 @@ import {
   type GuidedSeriesParallelGroupNode,
   type GuidedSeriesParallelTopology,
 } from '../guidedSeriesParallelNetwork'
-import {
-  makeGuidedSymbolRow,
-  type GuidedSymbolProblemResult,
-  type GuidedSymbolRow,
-} from '../guidedSymbolProblem'
 import type {
   GuidedComponentInput,
   GuidedComponentKind,
   GuidedSeriesGoal,
   GuidedValueMode,
 } from '../guidedSeriesImpedance'
-import type { GuidedParallelGoal } from '../guidedParallelCircuit'
 
 export type AppMode = 'guided' | 'formula'
 
-export type GuidedWorkflow =
-  | 'chapter-goal'
-  | 'symbol-builder'
-  | 'series-builder'
-  | 'parallel-builder'
-  | 'series-parallel-builder'
+export type GuidedWorkflow = 'chapter-goal' | 'series-builder' | 'series-parallel-builder'
 
 export type GuidedSeriesParallelNodeUpdates = Parameters<typeof updateSeriesParallelNode>[2]
 export type ThemeMode = 'light' | 'dark' | 'system'
@@ -40,21 +29,8 @@ export interface GuidedMathRow extends SolverInputRow {
   id: string
 }
 
-export interface GuidedSymbolPart {
-  id: string
-  label: string
-  rows: GuidedSymbolRow[]
-  result: GuidedSymbolProblemResult | null
-}
-
 export interface GuidedGoalOption {
   value: GuidedSeriesGoal
-  label: string
-  description: string
-}
-
-export interface ParallelGoalOption {
-  value: GuidedParallelGoal
   label: string
   description: string
 }
@@ -63,6 +39,11 @@ export interface SeriesParallelGoalOption {
   value: GuidedSeriesParallelGoal
   label: string
   description: string
+}
+
+export interface GuidedWorkflowOption {
+  value: GuidedWorkflow
+  label: string
 }
 
 export interface GuidedSample {
@@ -86,32 +67,112 @@ export interface SeriesParallelSample {
   root: GuidedSeriesParallelGroupNode
 }
 
-export const quantityGroups = groupByCategory()
-export const defaultGuidedMathGoal = guidedMathGoalGroups[0]?.goals[0] ?? guidedMathGoals[0]
-export const defaultGuidedSymbolPart = makeGuidedSymbolPart('Part A')
-export const THEME_STORAGE_KEY = 'accirc-theme-mode'
-export const chapter17GoalRedirectPrefix = 'chapter17:'
+const quizMathGoalIds = new Set([
+  'inductive-reactance-from-frequency-and-inductance',
+  'capacitive-reactance-from-frequency-and-capacitance',
+  'power-factor-from-phase-angle',
+  'series-impedance-magnitude-from-r-f-l',
+  'series-impedance-magnitude-from-r-f-c',
+  'net-reactance-from-frequency-inductance-and-capacitance',
+  'inductor-impedance-from-frequency-and-inductance',
+  'capacitor-impedance-from-frequency-and-capacitance',
+  'voltage-phasor-from-magnitude-and-angle',
+  'impedance-from-power-voltage-and-power-factor',
+  'impedance-from-source-voltage-and-current-phasors',
+  'equivalent-parallel-resistance-from-series-r-xl',
+  'equivalent-parallel-reactance-from-series-r-xl',
+  'capacitive-susceptance-from-frequency-and-capacitance',
+])
 
-export const chapter17QuestionGoals: Array<{
-  value: string
-  goal: GuidedSeriesParallelGoal
-  label: string
-}> = [
+const quizMathQuantityIds = new Set<QuantityId>([
+  'frequency',
+  'voltage',
+  'current',
+  'resistance',
+  'inductance',
+  'capacitance',
+  'inductiveReactance',
+  'capacitiveReactance',
+  'capacitiveSusceptance',
+  'netReactance',
+  'impedanceMagnitude',
+  'powerFactor',
+  'realPower',
+  'phaseAngle',
+  'polarAngle',
+  'phasorCurrent',
+  'phasorSourceVoltage',
+  'inductiveImpedance',
+  'capacitiveImpedance',
+  'impedanceComplex',
+  'equivalentParallelResistance',
+  'equivalentParallelInductiveReactance',
+])
+
+export const quantityGroups = groupByCategory(
+  quantityDefinitions.filter((definition) => quizMathQuantityIds.has(definition.id)),
+)
+export const guidedMathGoals = allGuidedMathGoals.filter((goal) => quizMathGoalIds.has(goal.id))
+const guidedMathGoalById = Object.fromEntries(guidedMathGoals.map((goal) => [goal.id, goal])) as Record<
+  string,
+  (typeof guidedMathGoals)[number]
+>
+
+const scopedGoalGroups = [
   {
-    value: `${chapter17GoalRedirectPrefix}series-parallel-impedance`,
-    goal: 'series-parallel-impedance',
-    label: 'Open the Chapter 17 builder for total impedance',
+    key: 'reactance-and-basics',
+    label: 'Reactance and phasor basics',
+    goalIds: [
+      'inductive-reactance-from-frequency-and-inductance',
+      'capacitive-reactance-from-frequency-and-capacitance',
+      'inductor-impedance-from-frequency-and-inductance',
+      'capacitor-impedance-from-frequency-and-capacitance',
+      'voltage-phasor-from-magnitude-and-angle',
+    ],
   },
   {
-    value: `${chapter17GoalRedirectPrefix}series-parallel-source-current`,
-    goal: 'series-parallel-source-current',
-    label: 'Open the Chapter 17 builder for source current',
+    key: 'series-ac-and-power',
+    label: 'Series AC and power',
+    goalIds: [
+      'series-impedance-magnitude-from-r-f-l',
+      'series-impedance-magnitude-from-r-f-c',
+      'net-reactance-from-frequency-inductance-and-capacitance',
+      'power-factor-from-phase-angle',
+      'impedance-from-power-voltage-and-power-factor',
+      'impedance-from-source-voltage-and-current-phasors',
+    ],
   },
   {
-    value: `${chapter17GoalRedirectPrefix}series-parallel-real-power`,
-    goal: 'series-parallel-real-power',
-    label: 'Open the Chapter 17 builder for real power',
+    key: 'equivalent-networks',
+    label: 'Equivalent networks',
+    goalIds: [
+      'equivalent-parallel-resistance-from-series-r-xl',
+      'equivalent-parallel-reactance-from-series-r-xl',
+    ],
   },
+  {
+    key: 'parallel-ac',
+    label: 'Parallel AC and admittance',
+    goalIds: ['capacitive-susceptance-from-frequency-and-capacitance'],
+  },
+]
+
+export const guidedMathGoalGroups = scopedGoalGroups
+  .map((group) => ({
+    key: group.key,
+    label: group.label,
+    goals: group.goalIds
+      .map((goalId) => guidedMathGoalById[goalId])
+      .filter(Boolean),
+  }))
+  .filter((group) => group.goals.length > 0)
+export const defaultGuidedMathGoal = guidedMathGoalGroups[0]?.goals[0] ?? guidedMathGoals[0]
+export const THEME_STORAGE_KEY = 'accirc-theme-mode'
+
+export const guidedWorkflowOptions: GuidedWorkflowOption[] = [
+  { value: 'chapter-goal', label: 'Quiz math goal' },
+  { value: 'series-builder', label: 'Series circuit from diagram' },
+  { value: 'series-parallel-builder', label: 'Mixed series-parallel network' },
 ]
 
 export const guidedGoalOptions: GuidedGoalOption[] = [
@@ -130,259 +191,103 @@ export const guidedGoalOptions: GuidedGoalOption[] = [
     label: 'Power factor of a series circuit',
     description: 'Finds the power factor from the impedance angle.',
   },
-  {
-    value: 'series-source-current',
-    label: 'Source current in a series circuit',
-    description: 'Needs the source voltage magnitude.',
-  },
-  {
-    value: 'series-resistor-voltage',
-    label: 'Voltage across the total series resistance',
-    description: 'Needs the source voltage magnitude.',
-  },
-  {
-    value: 'series-inductor-voltage',
-    label: 'Voltage across the total series inductance',
-    description: 'Needs the source voltage magnitude.',
-  },
-  {
-    value: 'series-capacitor-voltage',
-    label: 'Voltage across the total series capacitance',
-    description: 'Needs the source voltage magnitude.',
-  },
-  {
-    value: 'series-real-power',
-    label: 'Real power delivered to a series circuit',
-    description: 'Needs the source voltage magnitude.',
-  },
-]
-
-export const parallelGoalOptions: ParallelGoalOption[] = [
-  {
-    value: 'parallel-admittance',
-    label: 'Total admittance of a parallel circuit',
-    description: 'Best for Chapter 16 problems asking for Y in rectangular and polar form.',
-  },
-  {
-    value: 'parallel-admittance-angle',
-    label: 'Admittance angle of a parallel circuit',
-    description: 'Shows whether source current leads or lags the source voltage.',
-  },
-  {
-    value: 'parallel-impedance',
-    label: 'Total impedance of a parallel circuit',
-    description: 'Converts the total admittance into total impedance.',
-  },
-  {
-    value: 'parallel-source-current',
-    label: 'Source current in a parallel circuit',
-    description: 'Needs the source voltage magnitude.',
-  },
-  {
-    value: 'parallel-power-factor',
-    label: 'Power factor of a parallel circuit',
-    description: 'Uses total conductance and admittance magnitude.',
-  },
-  {
-    value: 'parallel-real-power',
-    label: 'Real power delivered to a parallel circuit',
-    description: 'Needs the source voltage magnitude.',
-  },
-  {
-    value: 'parallel-resistor-current',
-    label: 'Current through the total resistive branch',
-    description: 'Needs the source voltage magnitude.',
-  },
-  {
-    value: 'parallel-inductor-current',
-    label: 'Current through the total inductive branch',
-    description: 'Needs the source voltage magnitude.',
-  },
-  {
-    value: 'parallel-capacitor-current',
-    label: 'Current through the total capacitive branch',
-    description: 'Needs the source voltage magnitude.',
-  },
 ]
 
 export const seriesParallelGoalOptions: SeriesParallelGoalOption[] = [
   {
     value: 'series-parallel-impedance',
-    label: 'Total impedance of a series-parallel network',
-    description: 'Reduces the full Chapter 17 network into one total impedance.',
-  },
-  {
-    value: 'series-parallel-source-current',
-    label: 'Source current in a series-parallel network',
-    description: 'Needs the source voltage magnitude to compute the current phasor.',
-  },
-  {
-    value: 'series-parallel-real-power',
-    label: 'Real power delivered to a series-parallel network',
-    description: 'Needs the source voltage magnitude to compute real power.',
+    label: 'Total impedance of a mixed series-parallel network',
+    description: 'Reduces the entered mixed network into one total impedance.',
   },
 ]
 
 export const guidedSamples: GuidedSample[] = [
   {
-    id: 'figure-a',
-    title: 'Figure 15.86 (a)',
+    id: 'figure-15-2',
+    title: 'Figure 15.2',
     frequencyRawValue: '',
     frequencyUnitId: 'hz',
     sourceVoltageRawValue: '',
     sourceVoltageUnitId: 'v',
     components: [
-      { kind: 'resistor', valueMode: 'resistance', rawValue: '3', unitId: 'ohm' },
-      { kind: 'inductor', valueMode: 'reactance', rawValue: '4', unitId: 'ohm' },
-      { kind: 'capacitor', valueMode: 'reactance', rawValue: '5', unitId: 'ohm' },
+      { kind: 'resistor', valueMode: 'resistance', rawValue: '50', unitId: 'ohm' },
+      { kind: 'inductor', valueMode: 'reactance', rawValue: '20', unitId: 'ohm' },
     ],
   },
   {
-    id: 'figure-b',
-    title: 'Figure 15.86 (b)',
+    id: 'figure-15-6',
+    title: 'Figure 15.6',
     frequencyRawValue: '',
     frequencyUnitId: 'hz',
     sourceVoltageRawValue: '',
     sourceVoltageUnitId: 'v',
     components: [
-      { kind: 'resistor', valueMode: 'resistance', rawValue: '1', unitId: 'kohm' },
-      { kind: 'inductor', valueMode: 'reactance', rawValue: '2', unitId: 'kohm' },
-      { kind: 'inductor', valueMode: 'reactance', rawValue: '6', unitId: 'kohm' },
-      { kind: 'capacitor', valueMode: 'reactance', rawValue: '4', unitId: 'kohm' },
+      { kind: 'resistor', valueMode: 'resistance', rawValue: '100', unitId: 'ohm' },
+      { kind: 'inductor', valueMode: 'reactance', rawValue: '50', unitId: 'ohm' },
     ],
   },
   {
-    id: 'figure-c',
-    title: 'Figure 15.86 (c)',
-    frequencyRawValue: '1',
-    frequencyUnitId: 'khz',
+    id: 'figure-15-3',
+    title: 'Figure 15.3',
+    frequencyRawValue: '',
+    frequencyUnitId: 'hz',
     sourceVoltageRawValue: '',
     sourceVoltageUnitId: 'v',
     components: [
-      { kind: 'resistor', valueMode: 'resistance', rawValue: '470', unitId: 'ohm' },
-      { kind: 'inductor', valueMode: 'inductance', rawValue: '47', unitId: 'mh' },
-      { kind: 'inductor', valueMode: 'inductance', rawValue: '200', unitId: 'mh' },
-      { kind: 'capacitor', valueMode: 'capacitance', rawValue: '0.1', unitId: 'uf' },
+      { kind: 'resistor', valueMode: 'resistance', rawValue: '10', unitId: 'ohm' },
+      { kind: 'inductor', valueMode: 'reactance', rawValue: '20', unitId: 'ohm' },
+      { kind: 'capacitor', valueMode: 'reactance', rawValue: '15', unitId: 'ohm' },
     ],
   },
 ]
 
 export const seriesParallelSamples: SeriesParallelSample[] = [
   {
-    id: 'figure-17-29',
-    title: 'Figure 17.29',
-    goal: 'series-parallel-source-current',
-    frequencyRawValue: '',
+    id: 'question-18',
+    title: 'Question 18 mixed network',
+    goal: 'series-parallel-impedance',
+    frequencyRawValue: '500',
     frequencyUnitId: 'hz',
-    sourceVoltageRawValue: '14',
+    sourceVoltageRawValue: '',
     sourceVoltageUnitId: 'v',
     root: {
-      id: 'sample-17-29-root',
-      type: 'group',
-      label: 'ZT',
-      topology: 'series',
-      children: [
-        {
-          id: 'sample-17-29-xl',
-          type: 'component',
-          label: 'XL1',
-          kind: 'inductor',
-          valueMode: 'reactance',
-          rawValue: '4',
-          unitId: 'ohm',
-        },
-        {
-          id: 'sample-17-29-parallel',
-          type: 'group',
-          label: 'Parallel block',
-          topology: 'parallel',
-          children: [
-            {
-              id: 'sample-17-29-xc',
-              type: 'component',
-              label: 'XC',
-              kind: 'capacitor',
-              valueMode: 'reactance',
-              rawValue: '8',
-              unitId: 'ohm',
-            },
-            {
-              id: 'sample-17-29-r',
-              type: 'component',
-              label: 'R',
-              kind: 'resistor',
-              valueMode: 'resistance',
-              rawValue: '12',
-              unitId: 'ohm',
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    id: 'figure-17-35',
-    title: 'Figure 17.35',
-    goal: 'series-parallel-real-power',
-    frequencyRawValue: '',
-    frequencyUnitId: 'hz',
-    sourceVoltageRawValue: '40',
-    sourceVoltageUnitId: 'v',
-    root: {
-      id: 'sample-17-35-root',
+      id: 'sample-q18-root',
       type: 'group',
       label: 'ZT',
       topology: 'parallel',
       children: [
         {
-          id: 'sample-17-35-xc',
+          id: 'sample-q18-r',
           type: 'component',
-          label: 'XC',
-          kind: 'capacitor',
-          valueMode: 'reactance',
-          rawValue: '60',
+          label: '4700 ohm branch',
+          kind: 'resistor',
+          valueMode: 'resistance',
+          rawValue: '4700',
           unitId: 'ohm',
         },
         {
-          id: 'sample-17-35-series',
+          id: 'sample-q18-coil-branch',
           type: 'group',
-          label: 'R1 with shunt branch',
+          label: 'Coil branch',
           topology: 'series',
           children: [
             {
-              id: 'sample-17-35-r1',
+              id: 'sample-q18-coil-r',
               type: 'component',
-              label: 'R1',
+              label: 'Coil resistance',
               kind: 'resistor',
               valueMode: 'resistance',
-              rawValue: '10',
+              rawValue: '45',
               unitId: 'ohm',
             },
             {
-              id: 'sample-17-35-parallel',
-              type: 'group',
-              label: 'R2 || XL',
-              topology: 'parallel',
-              children: [
-                {
-                  id: 'sample-17-35-r2',
-                  type: 'component',
-                  label: 'R2',
-                  kind: 'resistor',
-                  valueMode: 'resistance',
-                  rawValue: '20',
-                  unitId: 'ohm',
-                },
-                {
-                  id: 'sample-17-35-xl',
-                  type: 'component',
-                  label: 'XL',
-                  kind: 'inductor',
-                  valueMode: 'reactance',
-                  rawValue: '80',
-                  unitId: 'ohm',
-                },
-              ],
+              id: 'sample-q18-coil-l',
+              type: 'component',
+              label: 'Coil inductance',
+              kind: 'inductor',
+              valueMode: 'inductance',
+              rawValue: '100',
+              unitId: 'mh',
             },
           ],
         },
@@ -415,20 +320,6 @@ export function makeGuidedMathRow(
     rawValue,
     unitId,
   }
-}
-
-export function makeGuidedSymbolPart(label: string): GuidedSymbolPart {
-  return {
-    id: crypto.randomUUID(),
-    label,
-    rows: [makeGuidedSymbolRow('r')],
-    result: null,
-  }
-}
-
-export function nextGuidedSymbolPartLabel(index: number): string {
-  const nextCode = 65 + index
-  return nextCode <= 90 ? `Part ${String.fromCharCode(nextCode)}` : `Part ${index + 1}`
 }
 
 export function makeGuidedComponent(
@@ -542,10 +433,10 @@ export function toScalar(value: number) {
   return { kind: 'scalar' as const, value }
 }
 
-function groupByCategory() {
+function groupByCategory(definitions = quantityDefinitions) {
   const grouped = new Map<string, typeof quantityDefinitions>()
 
-  for (const definition of quantityDefinitions) {
+  for (const definition of definitions) {
     const current = grouped.get(definition.category) ?? []
     current.push(definition)
     grouped.set(definition.category, current)

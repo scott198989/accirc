@@ -8,7 +8,7 @@ describe('guidedMathGoals', () => {
     ])
 
     expect(result.status).toBe('solved')
-    if (result.status !== 'solved' || result.value.kind !== 'scalar') {
+    if (result.status !== 'solved' || 'kind' in result || result.value.kind !== 'scalar') {
       return
     }
 
@@ -21,7 +21,7 @@ describe('guidedMathGoals', () => {
     ])
 
     expect(result.status).toBe('solved')
-    if (result.status !== 'solved' || result.value.kind !== 'scalar') {
+    if (result.status !== 'solved' || 'kind' in result || result.value.kind !== 'scalar') {
       return
     }
 
@@ -35,5 +35,34 @@ describe('guidedMathGoals', () => {
     ])
 
     expect(result.status).toBe('incomplete')
+  })
+
+  it('solves a current phasor from a sine-wave current expression', () => {
+    const result = solveGuidedMathGoal(guidedMathGoalMap['current-phasor-from-sine-expression'], [
+      { quantityId: 'peakCurrent', rawValue: '10', unitId: 'ma' },
+      { quantityId: 'waveformPhaseAngle', rawValue: '40', unitId: 'deg' },
+    ])
+
+    expect(result.status).toBe('solved')
+    if (result.status !== 'solved' || !('value' in result) || result.value.kind !== 'complex') {
+      return
+    }
+
+    expect(Math.hypot(result.value.real, result.value.imag)).toBeCloseTo(7.0710678e-3, 10)
+    expect(Math.atan2(result.value.imag, result.value.real)).toBeCloseTo((-50 * Math.PI) / 180, 10)
+  })
+
+  it('writes a voltage phasor back into a sine-wave voltage expression', () => {
+    const result = solveGuidedMathGoal(guidedMathGoalMap['voltage-sine-expression-from-phasor'], [
+      { quantityId: 'phasorSourceVoltage', rawValue: '14.1421356@40deg', unitId: 'v' },
+      { quantityId: 'angularFrequency', rawValue: '2500', unitId: 'rad_per_s' },
+    ])
+
+    expect(result.status).toBe('solved')
+    if (result.status !== 'solved' || !('kind' in result) || result.kind !== 'waveform-expression') {
+      return
+    }
+
+    expect(result.expression).toBe('v(t) = 20 sin(2500t + 130 deg) V')
   })
 })

@@ -31,7 +31,7 @@ export default function FormulaWorkspace({
         <div className="card__header">
           <div>
             <p className="eyebrow">Formula Mode</p>
-            <h2>Known values and target</h2>
+            <h2>Known quiz values and target</h2>
           </div>
           <button className="ghost-button" onClick={onAddFormulaRow} type="button">
             Add known
@@ -120,7 +120,7 @@ export default function FormulaWorkspace({
         </div>
 
         <div className="builder__footer">
-          <p>Formula mode is still here if you already know the exact electrical quantities.</p>
+          <p>Use formula mode when the quiz already gives the exact electrical quantities.</p>
           <button className="primary-button" onClick={onSolveFormula} type="button">
             Solve deterministically
           </button>

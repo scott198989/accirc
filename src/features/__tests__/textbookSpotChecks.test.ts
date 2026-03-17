@@ -15,7 +15,7 @@ describe('textbook spot checks', () => {
     ])
 
     expect(result.status).toBe('solved')
-    if (result.status !== 'solved' || result.value.kind !== 'scalar') {
+    if (result.status !== 'solved' || 'kind' in result || result.value.kind !== 'scalar') {
       return
     }
 
@@ -30,7 +30,7 @@ describe('textbook spot checks', () => {
     ])
 
     expect(result.status).toBe('solved')
-    if (result.status !== 'solved' || result.value.kind !== 'scalar') {
+    if (result.status !== 'solved' || 'kind' in result || result.value.kind !== 'scalar') {
       return
     }
 
@@ -46,7 +46,7 @@ describe('textbook spot checks', () => {
     ])
 
     expect(result.status).toBe('solved')
-    if (result.status !== 'solved' || result.value.kind !== 'scalar') {
+    if (result.status !== 'solved' || 'kind' in result || result.value.kind !== 'scalar') {
       return
     }
 
@@ -61,7 +61,7 @@ describe('textbook spot checks', () => {
     ])
 
     expect(result.status).toBe('solved')
-    if (result.status !== 'solved' || result.value.kind !== 'scalar') {
+    if (result.status !== 'solved' || 'kind' in result || result.value.kind !== 'scalar') {
       return
     }
 
@@ -225,5 +225,248 @@ describe('textbook spot checks', () => {
     const v1Angle = Math.atan2(v1Node.voltagePhasor.imag, v1Node.voltagePhasor.real)
     expect(v1Magnitude).toBeCloseTo(26.57, 2)
     expect(v1Angle).toBeCloseTo(0.083, 3)
+  })
+
+  it('matches Chapter 15 Problem 3(a) for the current phasor conversion', () => {
+    const goal = guidedMathGoalMap['current-phasor-from-sine-expression']
+    const result = solveGuidedMathGoal(goal, [
+      { quantityId: 'peakCurrent', rawValue: '10', unitId: 'ma' },
+      { quantityId: 'waveformPhaseAngle', rawValue: '40', unitId: 'deg' },
+    ])
+
+    expect(result.status).toBe('solved')
+    if (result.status !== 'solved' || !('value' in result) || result.value.kind !== 'complex') {
+      return
+    }
+
+    expect(Math.hypot(result.value.real, result.value.imag)).toBeCloseTo(7.0710678e-3, 10)
+    expect(Math.atan2(result.value.imag, result.value.real)).toBeCloseTo((-50 * Math.PI) / 180, 10)
+  })
+
+  it('matches Chapter 15 Problem 5(a) for the current and voltage phasor conversion', () => {
+    const currentGoal = guidedMathGoalMap['current-phasor-from-sine-expression']
+    const currentResult = solveGuidedMathGoal(currentGoal, [
+      { quantityId: 'peakCurrent', rawValue: '6', unitId: 'ma' },
+      { quantityId: 'waveformPhaseAngle', rawValue: '20', unitId: 'deg' },
+    ])
+
+    expect(currentResult.status).toBe('solved')
+    if (
+      currentResult.status !== 'solved' ||
+      !('value' in currentResult) ||
+      currentResult.value.kind !== 'complex'
+    ) {
+      return
+    }
+
+    expect(Math.hypot(currentResult.value.real, currentResult.value.imag)).toBeCloseTo(4.2426407e-3, 10)
+    expect(Math.atan2(currentResult.value.imag, currentResult.value.real)).toBeCloseTo((-70 * Math.PI) / 180, 10)
+
+    const voltageGoal = guidedMathGoalMap['voltage-phasor-from-sine-expression']
+    const voltageResult = solveGuidedMathGoal(voltageGoal, [
+      { quantityId: 'peakVoltage', rawValue: '16', unitId: 'v' },
+      { quantityId: 'waveformPhaseAngle', rawValue: '110', unitId: 'deg' },
+    ])
+
+    expect(voltageResult.status).toBe('solved')
+    if (
+      voltageResult.status !== 'solved' ||
+      !('value' in voltageResult) ||
+      voltageResult.value.kind !== 'complex'
+    ) {
+      return
+    }
+
+    expect(Math.hypot(voltageResult.value.real, voltageResult.value.imag)).toBeCloseTo(11.3137085, 7)
+    expect(Math.atan2(voltageResult.value.imag, voltageResult.value.real)).toBeCloseTo((20 * Math.PI) / 180, 10)
+  })
+
+  it('matches Chapter 15 Problem 7(b) for the capacitor current phasor conversion', () => {
+    const goal = guidedMathGoalMap['current-phasor-from-sine-expression']
+    const result = solveGuidedMathGoal(goal, [
+      { quantityId: 'peakCurrent', rawValue: '5', unitId: 'ua' },
+      { quantityId: 'waveformPhaseAngle', rawValue: '-80', unitId: 'deg' },
+    ])
+
+    expect(result.status).toBe('solved')
+    if (result.status !== 'solved' || !('value' in result) || result.value.kind !== 'complex') {
+      return
+    }
+
+    expect(Math.hypot(result.value.real, result.value.imag)).toBeCloseTo(3.5355339e-6, 12)
+    expect(Math.atan2(result.value.imag, result.value.real)).toBeCloseTo((-170 * Math.PI) / 180, 10)
+  })
+
+  it('matches Chapter 15 Problem 3(d) for the sinusoidal voltage writeback', () => {
+    const goal = guidedMathGoalMap['voltage-sine-expression-from-phasor']
+    const result = solveGuidedMathGoal(goal, [
+      { quantityId: 'phasorSourceVoltage', rawValue: '14.1421356@40deg', unitId: 'v' },
+      { quantityId: 'angularFrequency', rawValue: '2500', unitId: 'rad_per_s' },
+    ])
+
+    expect(result.status).toBe('solved')
+    if (result.status !== 'solved' || !('kind' in result) || result.kind !== 'waveform-expression') {
+      return
+    }
+
+    expect(result.expression).toBe('v(t) = 20 sin(2500t + 130 deg) V')
+  })
+
+  it('matches Chapter 15 Problem 7(e) for the capacitor voltage sine-wave writeback', () => {
+    const goal = guidedMathGoalMap['voltage-sine-expression-from-phasor']
+    const result = solveGuidedMathGoal(goal, [
+      { quantityId: 'phasorSourceVoltage', rawValue: '17.6776695@100deg', unitId: 'mv' },
+      { quantityId: 'angularFrequency', rawValue: '20000', unitId: 'rad_per_s' },
+    ])
+
+    expect(result.status).toBe('solved')
+    if (result.status !== 'solved' || !('kind' in result) || result.kind !== 'waveform-expression') {
+      return
+    }
+
+    expect(result.expression).toBe('v(t) = 25 sin(20000t - 170 deg) mV')
+  })
+
+  it('matches quiz Question 14 for rectangular impedance from power, voltage, and power factor', () => {
+    const goal = guidedMathGoalMap['impedance-from-power-voltage-and-power-factor']
+    const result = solveGuidedMathGoal(goal, [
+      { quantityId: 'realPower', rawValue: '100', unitId: 'w' },
+      { quantityId: 'voltage', rawValue: '500', unitId: 'v' },
+      { quantityId: 'powerFactor', rawValue: '0.8', unitId: 'unitless' },
+    ])
+
+    expect(result.status).toBe('solved')
+    if (result.status !== 'solved' || !('value' in result) || result.value.kind !== 'complex') {
+      return
+    }
+
+    expect(result.value.real).toBeCloseTo(1600, 8)
+    expect(result.value.imag).toBeCloseTo(1200, 8)
+  })
+
+  it('matches quiz Question 18 for the mixed-network impedance magnitude', () => {
+    const root: GuidedSeriesParallelGroupNode = {
+      id: 'root',
+      type: 'group',
+      label: 'ZT',
+      topology: 'parallel',
+      children: [
+        {
+          id: 'r',
+          type: 'component',
+          label: '4700 ohm branch',
+          kind: 'resistor',
+          valueMode: 'resistance',
+          rawValue: '4700',
+          unitId: 'ohm',
+        },
+        {
+          id: 'coil',
+          type: 'group',
+          label: 'Coil branch',
+          topology: 'series',
+          children: [
+            {
+              id: 'coil-r',
+              type: 'component',
+              label: 'Coil resistance',
+              kind: 'resistor',
+              valueMode: 'resistance',
+              rawValue: '45',
+              unitId: 'ohm',
+            },
+            {
+              id: 'coil-l',
+              type: 'component',
+              label: 'Coil inductance',
+              kind: 'inductor',
+              valueMode: 'inductance',
+              rawValue: '100',
+              unitId: 'mh',
+            },
+          ],
+        },
+      ],
+    }
+
+    const result = solveGuidedSeriesParallelNetwork({
+      goal: 'series-parallel-impedance',
+      frequencyRawValue: '500',
+      frequencyUnitId: 'hz',
+      sourceVoltageRawValue: '',
+      sourceVoltageUnitId: 'v',
+      root,
+    })
+
+    expect(result.status).toBe('solved')
+    if (
+      result.status !== 'solved' ||
+      result.reference.totalImpedanceMagnitude.kind !== 'scalar'
+    ) {
+      return
+    }
+
+    expect(result.reference.totalImpedanceMagnitude.value).toBeCloseTo(313.67, 2)
+  })
+
+  it('matches quiz Question 31 for equivalent parallel RL conversion', () => {
+    const resistanceGoal = guidedMathGoalMap['equivalent-parallel-resistance-from-series-r-xl']
+    const reactanceGoal = guidedMathGoalMap['equivalent-parallel-reactance-from-series-r-xl']
+
+    const resistanceResult = solveGuidedMathGoal(resistanceGoal, [
+      { quantityId: 'resistance', rawValue: '100', unitId: 'ohm' },
+      { quantityId: 'inductiveReactance', rawValue: '50', unitId: 'ohm' },
+    ])
+    const reactanceResult = solveGuidedMathGoal(reactanceGoal, [
+      { quantityId: 'resistance', rawValue: '100', unitId: 'ohm' },
+      { quantityId: 'inductiveReactance', rawValue: '50', unitId: 'ohm' },
+    ])
+
+    expect(resistanceResult.status).toBe('solved')
+    expect(reactanceResult.status).toBe('solved')
+    if (
+      resistanceResult.status !== 'solved' ||
+      !('value' in resistanceResult) ||
+      resistanceResult.value.kind !== 'scalar' ||
+      reactanceResult.status !== 'solved' ||
+      !('value' in reactanceResult) ||
+      reactanceResult.value.kind !== 'scalar'
+    ) {
+      return
+    }
+
+    expect(resistanceResult.value.value).toBeCloseTo(125, 8)
+    expect(reactanceResult.value.value).toBeCloseTo(250, 8)
+  })
+
+  it('matches quiz Question 35 for capacitor impedance in rectangular form', () => {
+    const goal = guidedMathGoalMap['capacitor-impedance-from-frequency-and-capacitance']
+    const result = solveGuidedMathGoal(goal, [
+      { quantityId: 'frequency', rawValue: '60', unitId: 'hz' },
+      { quantityId: 'capacitance', rawValue: '10', unitId: 'uf' },
+    ])
+
+    expect(result.status).toBe('solved')
+    if (result.status !== 'solved' || !('value' in result) || result.value.kind !== 'complex') {
+      return
+    }
+
+    expect(result.value.real).toBeCloseTo(0, 8)
+    expect(result.value.imag).toBeCloseTo(-265.258238, 6)
+  })
+
+  it('matches quiz Question 38 for capacitive susceptance', () => {
+    const goal = guidedMathGoalMap['capacitive-susceptance-from-frequency-and-capacitance']
+    const result = solveGuidedMathGoal(goal, [
+      { quantityId: 'frequency', rawValue: '1000', unitId: 'hz' },
+      { quantityId: 'capacitance', rawValue: '100', unitId: 'uf' },
+    ])
+
+    expect(result.status).toBe('solved')
+    if (result.status !== 'solved' || !('value' in result) || result.value.kind !== 'scalar') {
+      return
+    }
+
+    expect(result.value.value).toBeCloseTo(0.62831853, 8)
   })
 })

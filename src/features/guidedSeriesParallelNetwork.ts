@@ -223,8 +223,7 @@ export function solveGuidedSeriesParallelNetwork(
   if (goalNeedsSourceVoltage(goal) && !input.sourceVoltageRawValue?.trim()) {
     return {
       status: 'invalid',
-      message:
-        'This Chapter 17 goal needs the source voltage. Enter the source magnitude before solving.',
+      message: 'This mixed-network goal needs the source voltage. Enter the source magnitude before solving.',
     }
   }
 
@@ -438,7 +437,7 @@ function evaluateComponent(
     return makeComponentNode(node, label, complex(0, -reactanceSolve.value.value))
   }
 
-  return invalidFor(label, 'This component type is not supported in Chapter 17 mode yet.')
+  return invalidFor(label, 'This component type is not supported in mixed-network mode yet.')
 }
 
 function makeComponentNode(

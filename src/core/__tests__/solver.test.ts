@@ -101,6 +101,36 @@ describe('solveCircuitProblem', () => {
     expect(result.steps.at(-1)?.formula).toBe('I = V|Y|')
   })
 
+  it('converts a sine-wave current into a textbook phasor', () => {
+    const result = solveCircuitProblem('phasorCurrent', [
+      { quantityId: 'peakCurrent', rawValue: '10', unitId: 'ma' },
+      { quantityId: 'waveformPhaseAngle', rawValue: '40', unitId: 'deg' },
+    ])
+
+    expect(result.status).toBe('solved')
+    if (result.status !== 'solved' || result.value.kind !== 'complex') {
+      return
+    }
+
+    expect(Math.hypot(result.value.real, result.value.imag)).toBeCloseTo(7.0710678e-3, 10)
+    expect(Math.atan2(result.value.imag, result.value.real)).toBeCloseTo((-50 * Math.PI) / 180, 10)
+    expect(result.steps.at(-1)?.formula).toContain('theta - 90 deg')
+  })
+
+  it('recovers peak voltage from a voltage phasor', () => {
+    const result = solveCircuitProblem('peakVoltage', [
+      { quantityId: 'phasorSourceVoltage', rawValue: '14.1421356@40deg', unitId: 'v' },
+    ])
+
+    expect(result.status).toBe('solved')
+    if (result.status !== 'solved' || result.value.kind !== 'scalar') {
+      return
+    }
+
+    expect(result.value.value).toBeCloseTo(20, 6)
+    expect(result.steps.at(-1)?.formula).toBe('Vm = sqrt(2) |E|')
+  })
+
   it('refuses incomplete requests', () => {
     const result = solveCircuitProblem('inductance', [
       { quantityId: 'inductiveReactance', rawValue: '18.85', unitId: 'ohm' },

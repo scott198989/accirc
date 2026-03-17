@@ -1,4 +1,3 @@
-import { formulaCount, formulaFamilies } from '../../core'
 import {
   guidedSamples,
   seriesParallelSamples,
@@ -29,17 +28,17 @@ export default function AppHeader({
     <>
       <header className="hero">
         <div className="hero__copy">
-          <p className="eyebrow">Offline. Deterministic. Transparent.</p>
-          <h1>AC Circuits Formula Selector and Solver</h1>
+          <p className="eyebrow">Offline. Deterministic. Quiz-focused.</p>
+          <h1>CH 15 and 16 AC Quiz Math Solver</h1>
           <p className="hero__lede">
-            Guided mode now lets the user solve from chapter goals, from the exact variable
-            labels printed in the book, or from circuit diagrams, all while keeping the solve
-            path deterministic and transparent.
+            This build is intentionally narrowed to the math-only problem types shown in the
+            Chapter 15 and 16 quiz screenshots. It keeps the solve path deterministic while
+            hiding the theory-only and out-of-scope workflows.
           </p>
           <div className="hero__stats">
-            <span>{formulaFamilies.length} formula families</span>
-            <span>{formulaCount} solve variants</span>
-            <span>Chapter 10, 11, and 13-17 workflows live now</span>
+            <span>Math questions only</span>
+            <span>Series and mixed-network solves</span>
+            <span>Phasor and impedance conversions</span>
             <span>No network needed at runtime</span>
           </div>
         </div>
@@ -74,7 +73,7 @@ export default function AppHeader({
             </div>
           </div>
 
-          <p className="panel__label">Textbook quick loads</p>
+          <p className="panel__label">Quiz figure quick loads</p>
           <div className="sample-list">
             {guidedSamples.map((sample) => (
               <button
@@ -98,9 +97,9 @@ export default function AppHeader({
             ))}
           </div>
           <p className="panel__note">
-            The current guided shell now covers Chapters 10, 11, and 13-17. Chapter 12
-            magnetic-circuit workflows are still intentionally skipped for now, but the
-            Chapter 17 series-parallel reduction builder is now live.
+            Theory prompts, true-false items, and the legacy extra workflows are intentionally
+            excluded here. This shell only exposes the math families needed by the quiz
+            screenshots.
           </p>
         </aside>
       </header>

@@ -1,4 +1,9 @@
 import { quantityMap, solveCircuitProblem, type QuantityId, type SolveResult, type SolverInputRow } from '../core'
+import {
+  solveGuidedWaveformExpression,
+  type GuidedWaveformExpressionGoal,
+  type GuidedWaveformExpressionResult,
+} from './guidedWaveformExpressions'
 
 export interface GuidedMathGoalDefinition {
   id: string
@@ -6,10 +11,13 @@ export interface GuidedMathGoalDefinition {
   section: string
   label: string
   description: string
-  target: QuantityId
+  target?: QuantityId
+  waveformGoal?: GuidedWaveformExpressionGoal
   inputs: QuantityId[]
   note?: string
 }
+
+export type GuidedMathResult = SolveResult | GuidedWaveformExpressionResult
 
 export const guidedMathGoals: GuidedMathGoalDefinition[] = [
   {
@@ -294,6 +302,100 @@ export const guidedMathGoals: GuidedMathGoalDefinition[] = [
     inputs: ['phaseAngle'],
   },
   {
+    id: 'series-impedance-magnitude-from-r-f-l',
+    chapter: '15',
+    section: 'Series AC impedance',
+    label: 'Find series RL impedance magnitude from resistance, frequency, and inductance',
+    description: 'Use this when the problem gives R, f, and L for a coil or RL branch.',
+    target: 'impedanceMagnitude',
+    inputs: ['resistance', 'frequency', 'inductance'],
+  },
+  {
+    id: 'series-impedance-magnitude-from-r-f-c',
+    chapter: '15',
+    section: 'Series AC impedance',
+    label: 'Find series RC impedance magnitude from resistance, frequency, and capacitance',
+    description: 'Use this when the problem gives R, f, and C for an RC branch.',
+    target: 'impedanceMagnitude',
+    inputs: ['resistance', 'frequency', 'capacitance'],
+  },
+  {
+    id: 'net-reactance-from-frequency-inductance-and-capacitance',
+    chapter: '15',
+    section: 'Series AC impedance',
+    label: 'Find net reactance from frequency, inductance, and capacitance',
+    description: 'Use this when the problem gives f, L, and C and asks for the overall reactance.',
+    target: 'netReactance',
+    inputs: ['frequency', 'inductance', 'capacitance'],
+  },
+  {
+    id: 'inductor-impedance-from-frequency-and-inductance',
+    chapter: '15',
+    section: 'Basic elements and phasors',
+    label: 'Find inductor impedance from frequency and inductance',
+    description: 'Use this when the problem gives f and L and asks for the inductor impedance.',
+    target: 'inductiveImpedance',
+    inputs: ['frequency', 'inductance'],
+  },
+  {
+    id: 'capacitor-impedance-from-frequency-and-capacitance',
+    chapter: '15',
+    section: 'Basic elements and phasors',
+    label: 'Find capacitor impedance from frequency and capacitance',
+    description: 'Use this when the problem gives f and C and asks for the capacitor impedance.',
+    target: 'capacitiveImpedance',
+    inputs: ['frequency', 'capacitance'],
+  },
+  {
+    id: 'voltage-phasor-from-magnitude-and-angle',
+    chapter: '15',
+    section: 'Waveform and phasor conversion',
+    label: 'Find voltage phasor from magnitude and angle',
+    description: 'Use this when the problem gives a voltage magnitude and a polar angle.',
+    target: 'phasorSourceVoltage',
+    inputs: ['voltage', 'polarAngle'],
+  },
+  {
+    id: 'current-phasor-from-sine-expression',
+    chapter: '15',
+    section: 'Waveform and phasor conversion',
+    label: 'Find current phasor from a sinusoidal current expression',
+    description: 'Use this when the problem gives a sine-wave current amplitude and phase and asks for the phasor.',
+    target: 'phasorCurrent',
+    inputs: ['peakCurrent', 'waveformPhaseAngle'],
+    note: 'Enter the peak current and the phase angle exactly as they appear in the sine expression. The app converts that into the textbook RMS phasor by shifting the angle by -90 deg.',
+  },
+  {
+    id: 'voltage-phasor-from-sine-expression',
+    chapter: '15',
+    section: 'Waveform and phasor conversion',
+    label: 'Find voltage phasor from a sinusoidal voltage expression',
+    description: 'Use this when the problem gives a sine-wave voltage amplitude and phase and asks for the phasor.',
+    target: 'phasorSourceVoltage',
+    inputs: ['peakVoltage', 'waveformPhaseAngle'],
+    note: 'Enter the peak voltage and the phase angle exactly as they appear in the sine expression. The app converts that into the textbook RMS phasor by shifting the angle by -90 deg.',
+  },
+  {
+    id: 'current-sine-expression-from-phasor',
+    chapter: '15',
+    section: 'Waveform and phasor conversion',
+    label: 'Write a current phasor as a sinusoidal current expression',
+    description: 'Use this when the problem gives an RMS current phasor and omega and asks for i(t).',
+    waveformGoal: 'current-sine-expression-from-phasor',
+    inputs: ['phasorCurrent', 'angularFrequency'],
+    note: 'Enter the textbook RMS phasor in rectangular or polar form plus omega. The app converts the phasor angle back to the sine-wave angle by adding 90 deg and then writes the peak-value sine expression.',
+  },
+  {
+    id: 'voltage-sine-expression-from-phasor',
+    chapter: '15',
+    section: 'Waveform and phasor conversion',
+    label: 'Write a voltage phasor as a sinusoidal voltage expression',
+    description: 'Use this when the problem gives an RMS voltage phasor and omega and asks for v(t).',
+    waveformGoal: 'voltage-sine-expression-from-phasor',
+    inputs: ['phasorSourceVoltage', 'angularFrequency'],
+    note: 'Enter the textbook RMS phasor in rectangular or polar form plus omega. The app converts the phasor angle back to the sine-wave angle by adding 90 deg and then writes the peak-value sine expression.',
+  },
+  {
     id: 'real-power-from-current-and-resistance',
     chapter: '15',
     section: 'Series AC power',
@@ -301,6 +403,43 @@ export const guidedMathGoals: GuidedMathGoalDefinition[] = [
     description: 'Use this when the problem gives I and R and asks for P.',
     target: 'realPower',
     inputs: ['current', 'resistance'],
+  },
+  {
+    id: 'impedance-from-power-voltage-and-power-factor',
+    chapter: '15',
+    section: 'Series AC power',
+    label: 'Find rectangular impedance from power, voltage, and power factor',
+    description: 'Use this when the problem gives P, V, and pf and asks for Z in rectangular form.',
+    target: 'impedanceComplex',
+    inputs: ['realPower', 'voltage', 'powerFactor'],
+    note: 'This quiz-focused solve assumes the power-factor angle is the standard lagging positive angle. For leading cases, use formula mode with a signed phase angle directly.',
+  },
+  {
+    id: 'impedance-from-source-voltage-and-current-phasors',
+    chapter: '15',
+    section: 'Phasor relationships',
+    label: 'Find impedance from source voltage and current phasors',
+    description: 'Use this when the problem gives E and I as phasors and asks for Z.',
+    target: 'impedanceComplex',
+    inputs: ['phasorSourceVoltage', 'phasorCurrent'],
+  },
+  {
+    id: 'equivalent-parallel-resistance-from-series-r-xl',
+    chapter: '15',
+    section: 'Equivalent RL circuits',
+    label: 'Find equivalent parallel resistance from series R and XL',
+    description: 'Use this when the problem asks for Rp from a series RL pair.',
+    target: 'equivalentParallelResistance',
+    inputs: ['resistance', 'inductiveReactance'],
+  },
+  {
+    id: 'equivalent-parallel-reactance-from-series-r-xl',
+    chapter: '15',
+    section: 'Equivalent RL circuits',
+    label: 'Find equivalent parallel inductive reactance from series R and XL',
+    description: 'Use this when the problem asks for the parallel XL from a series RL pair.',
+    target: 'equivalentParallelInductiveReactance',
+    inputs: ['resistance', 'inductiveReactance'],
   },
   {
     id: 'conductance-from-resistance',
@@ -328,6 +467,15 @@ export const guidedMathGoals: GuidedMathGoalDefinition[] = [
     description: 'Use this when the problem gives XC and asks for BC.',
     target: 'capacitiveSusceptance',
     inputs: ['capacitiveReactance'],
+  },
+  {
+    id: 'capacitive-susceptance-from-frequency-and-capacitance',
+    chapter: '16',
+    section: 'Parallel AC building blocks',
+    label: 'Find capacitive susceptance from frequency and capacitance',
+    description: 'Use this when the problem gives f and C and asks for BC.',
+    target: 'capacitiveSusceptance',
+    inputs: ['frequency', 'capacitance'],
   },
   {
     id: 'parallel-admittance-from-g-bl-bc',
@@ -468,6 +616,18 @@ export function makeGuidedMathRows(goal: GuidedMathGoalDefinition): SolverInputR
 export function solveGuidedMathGoal(
   goal: GuidedMathGoalDefinition,
   rows: SolverInputRow[],
-): SolveResult {
+): GuidedMathResult {
+  if (goal.waveformGoal) {
+    return solveGuidedWaveformExpression(goal.waveformGoal, rows)
+  }
+
+  if (!goal.target) {
+    return {
+      kind: 'waveform-expression',
+      status: 'invalid',
+      message: `No solve target is configured for "${goal.label}".`,
+    }
+  }
+
   return solveCircuitProblem(goal.target, rows)
 }

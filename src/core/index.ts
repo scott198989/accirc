@@ -1,5 +1,10 @@
 export { formulaFamilies, formulaVariants } from './formulaLibrary'
-export { formatKnownAssignment, formatQuantityInBaseUnit, formatQuantitySmart } from './format'
+export {
+  formatKnownAssignment,
+  formatQuantityInBaseUnit,
+  formatQuantityPolar,
+  formatQuantitySmart,
+} from './format'
 export { quantityDefinitions, quantityMap } from './quantities'
 export { formulaCount, solveWithRules } from './ruleEngine'
 export { solveCircuitProblem } from './solver'

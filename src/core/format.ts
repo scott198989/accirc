@@ -1,3 +1,4 @@
+import { magnitude, phase } from './complex'
 import { pickBestUnit, toDisplayValue } from './units'
 import { quantityMap } from './quantities'
 import type { QuantityId, QuantityValue, UnitDefinition } from './types'
@@ -54,6 +55,24 @@ export function formatQuantitySmart(quantityId: QuantityId, value: QuantityValue
   const quantity = quantityMap[quantityId]
   const chosenUnit = pickBestUnit(quantity, value)
   return formatQuantityValue(value, chosenUnit)
+}
+
+export function formatQuantityPolar(quantityId: QuantityId, value: QuantityValue): string {
+  if (value.kind !== 'complex') {
+    return formatQuantitySmart(quantityId, value)
+  }
+
+  const quantity = quantityMap[quantityId]
+  const chosenUnit = pickBestUnit(quantity, value)
+  const displayValue = toDisplayValue(value, chosenUnit)
+  if (displayValue.kind !== 'complex') {
+    return formatQuantityValue(displayValue, chosenUnit)
+  }
+
+  const suffix = chosenUnit.symbol ? ` ${chosenUnit.symbol}` : ''
+  const angleDegrees = (phase(displayValue) * 180) / Math.PI
+
+  return `${formatNumber(magnitude(displayValue))} ∠ ${formatNumber(angleDegrees)} deg${suffix}`
 }
 
 export function formatKnownAssignment(quantityId: QuantityId, value: QuantityValue): string {

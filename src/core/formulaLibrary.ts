@@ -7,6 +7,7 @@ import {
   divideComplex,
   fromPolar,
   magnitude,
+  phase,
   multiplyByNegativeImaginary,
   multiplyByPositiveImaginary,
   multiplyComplex,
@@ -50,6 +51,17 @@ function nonZero(value: number, label: string): string | undefined {
 
 function validateAll(...messages: Array<string | undefined>): string | undefined {
   return messages.find(Boolean)
+}
+
+function normalizeAngleRadians(angle: number): number {
+  let normalized = angle
+  while (normalized <= -Math.PI) {
+    normalized += TAU
+  }
+  while (normalized > Math.PI) {
+    normalized -= TAU
+  }
+  return normalized
 }
 
 function getScalar(values: KnownValueMap, id: QuantityId): number {
@@ -868,6 +880,126 @@ export const formulaFamilies: FormulaFamily[] = [
       compute: (values) => scalar(getScalar(values, 'rmsVoltage') * Math.SQRT2),
     },
   ]),
+  family('current-phasor-waveform', 'Current phasor and waveform conversion', '15', [
+    {
+      id: 'current-phasor-from-rms-and-angle',
+      target: 'phasorCurrent',
+      inputs: ['rmsCurrent', 'waveformPhaseAngle'],
+      displayFormula: 'I = Irms ∠ (theta - 90 deg)',
+      description: 'Builds a current phasor from an RMS sine-wave value using the textbook cosine-reference phasor convention.',
+      priority: 8,
+      compute: (values) =>
+        fromPolar(
+          getScalar(values, 'rmsCurrent'),
+          getScalar(values, 'waveformPhaseAngle') - Math.PI / 2,
+        ),
+    },
+    {
+      id: 'current-phasor-from-peak-and-angle',
+      target: 'phasorCurrent',
+      inputs: ['peakCurrent', 'waveformPhaseAngle'],
+      displayFormula: 'I = (Im / sqrt(2)) ∠ (theta - 90 deg)',
+      description: 'Builds a current phasor from a sine-wave peak current using the textbook cosine-reference phasor convention.',
+      priority: 8,
+      compute: (values) =>
+        fromPolar(
+          getScalar(values, 'peakCurrent') / Math.SQRT2,
+          getScalar(values, 'waveformPhaseAngle') - Math.PI / 2,
+        ),
+    },
+    {
+      id: 'rms-current-from-current-phasor',
+      target: 'rmsCurrent',
+      inputs: ['phasorCurrent'],
+      displayFormula: 'Irms = |I|',
+      description: 'Reads the RMS current directly from the phasor magnitude.',
+      priority: 8,
+      compute: (values) => scalar(magnitude(getComplex(values, 'phasorCurrent'))),
+    },
+    {
+      id: 'peak-current-from-current-phasor',
+      target: 'peakCurrent',
+      inputs: ['phasorCurrent'],
+      displayFormula: 'Im = sqrt(2) |I|',
+      description: 'Converts the RMS phasor magnitude back into the peak current of the sine wave.',
+      priority: 8,
+      compute: (values) => scalar(magnitude(getComplex(values, 'phasorCurrent')) * Math.SQRT2),
+    },
+    {
+      id: 'waveform-angle-from-current-phasor',
+      target: 'waveformPhaseAngle',
+      inputs: ['phasorCurrent'],
+      displayFormula: 'theta = angle(I) + 90 deg',
+      description: 'Converts a textbook phasor angle back into the phase used by a sine-wave time expression.',
+      priority: 8,
+      compute: (values) => scalar(normalizeAngleRadians(phase(getComplex(values, 'phasorCurrent')) + Math.PI / 2)),
+    },
+  ]),
+  family('voltage-phasor-waveform', 'Voltage phasor and waveform conversion', '15', [
+    {
+      id: 'voltage-phasor-from-magnitude-and-angle',
+      target: 'phasorSourceVoltage',
+      inputs: ['voltage', 'polarAngle'],
+      displayFormula: 'E = V ∠ theta',
+      description: 'Builds a voltage phasor directly from a magnitude and polar angle.',
+      priority: 8,
+      compute: (values) => fromPolar(getScalar(values, 'voltage'), getScalar(values, 'polarAngle')),
+    },
+    {
+      id: 'voltage-phasor-from-rms-and-angle',
+      target: 'phasorSourceVoltage',
+      inputs: ['rmsVoltage', 'waveformPhaseAngle'],
+      displayFormula: 'E = Vrms ∠ (theta - 90 deg)',
+      description: 'Builds a voltage phasor from an RMS sine-wave value using the textbook cosine-reference phasor convention.',
+      priority: 8,
+      compute: (values) =>
+        fromPolar(
+          getScalar(values, 'rmsVoltage'),
+          getScalar(values, 'waveformPhaseAngle') - Math.PI / 2,
+        ),
+    },
+    {
+      id: 'voltage-phasor-from-peak-and-angle',
+      target: 'phasorSourceVoltage',
+      inputs: ['peakVoltage', 'waveformPhaseAngle'],
+      displayFormula: 'E = (Vm / sqrt(2)) ∠ (theta - 90 deg)',
+      description: 'Builds a voltage phasor from a sine-wave peak voltage using the textbook cosine-reference phasor convention.',
+      priority: 8,
+      compute: (values) =>
+        fromPolar(
+          getScalar(values, 'peakVoltage') / Math.SQRT2,
+          getScalar(values, 'waveformPhaseAngle') - Math.PI / 2,
+        ),
+    },
+    {
+      id: 'rms-voltage-from-voltage-phasor',
+      target: 'rmsVoltage',
+      inputs: ['phasorSourceVoltage'],
+      displayFormula: 'Vrms = |E|',
+      description: 'Reads the RMS voltage directly from the phasor magnitude.',
+      priority: 8,
+      compute: (values) => scalar(magnitude(getComplex(values, 'phasorSourceVoltage'))),
+    },
+    {
+      id: 'peak-voltage-from-voltage-phasor',
+      target: 'peakVoltage',
+      inputs: ['phasorSourceVoltage'],
+      displayFormula: 'Vm = sqrt(2) |E|',
+      description: 'Converts the RMS phasor magnitude back into the peak voltage of the sine wave.',
+      priority: 8,
+      compute: (values) => scalar(magnitude(getComplex(values, 'phasorSourceVoltage')) * Math.SQRT2),
+    },
+    {
+      id: 'waveform-angle-from-voltage-phasor',
+      target: 'waveformPhaseAngle',
+      inputs: ['phasorSourceVoltage'],
+      displayFormula: 'theta = angle(E) + 90 deg',
+      description: 'Converts a textbook phasor angle back into the phase used by a sine-wave time expression.',
+      priority: 8,
+      compute: (values) =>
+        scalar(normalizeAngleRadians(phase(getComplex(values, 'phasorSourceVoltage')) + Math.PI / 2)),
+    },
+  ]),
   family('inductive-impedance', 'Inductor impedance', '14', [
     {
       id: 'zl-from-xl',
@@ -892,6 +1024,32 @@ export const formulaFamilies: FormulaFamily[] = [
           : 'ZL must be a purely positive imaginary impedance.'
       },
       compute: (values) => scalar(getComplex(values, 'inductiveImpedance').imag),
+    },
+  ]),
+  family('capacitive-impedance', 'Capacitor impedance', '14', [
+    {
+      id: 'zc-from-xc',
+      target: 'capacitiveImpedance',
+      inputs: ['capacitiveReactance'],
+      displayFormula: 'ZC = -jXC',
+      description: 'Converts capacitive reactance to complex impedance.',
+      priority: 7,
+      compute: (values) => complex(0, -getScalar(values, 'capacitiveReactance')),
+    },
+    {
+      id: 'xc-from-zc',
+      target: 'capacitiveReactance',
+      inputs: ['capacitiveImpedance'],
+      displayFormula: 'XC = -imag(ZC)',
+      description: 'Extracts capacitive reactance from complex impedance.',
+      priority: 7,
+      validate: (values) => {
+        const impedance = getComplex(values, 'capacitiveImpedance')
+        return Math.abs(impedance.real) < EPSILON && impedance.imag <= 0
+          ? undefined
+          : 'ZC must be a purely negative imaginary impedance.'
+      },
+      compute: (values) => scalar(-getComplex(values, 'capacitiveImpedance').imag),
     },
   ]),
   family('inductor-voltage-phasor', 'Inductor voltage phasor', '15', [
@@ -991,6 +1149,60 @@ export const formulaFamilies: FormulaFamily[] = [
   ]),
   family('complex-impedance', 'Complex impedance', '15', [
     {
+      id: 'complex-impedance-from-net-reactance',
+      target: 'impedanceComplex',
+      inputs: ['netReactance'],
+      displayFormula: 'Z = jX',
+      description: 'Builds a purely reactive impedance from the net reactance.',
+      priority: 8,
+      compute: (values) => complex(0, getScalar(values, 'netReactance')),
+    },
+    {
+      id: 'complex-impedance-from-power-voltage-and-pf',
+      target: 'impedanceComplex',
+      inputs: ['realPower', 'voltage', 'powerFactor'],
+      displayFormula: 'Z = |Z| (pf + j sqrt(1 - pf^2))',
+      description:
+        'Computes rectangular impedance from real power, voltage, and lagging power factor.',
+      priority: 9,
+      validate: (values) => {
+        const power = getScalar(values, 'realPower')
+        const voltage = getScalar(values, 'voltage')
+        const factor = getScalar(values, 'powerFactor')
+        if (power <= 0) {
+          return 'Real power must be positive.'
+        }
+
+        if (voltage <= 0) {
+          return 'Voltage must be positive.'
+        }
+
+        if (factor < 0 || factor > 1) {
+          return 'Power factor must stay between 0 and 1.'
+        }
+
+        return undefined
+      },
+      compute: (values) => {
+        const power = getScalar(values, 'realPower')
+        const voltage = getScalar(values, 'voltage')
+        const factor = getScalar(values, 'powerFactor')
+        const magnitude = (voltage ** 2 * factor) / power
+        const reactanceFactor = Math.sqrt(Math.max(0, 1 - factor ** 2))
+        return complex(magnitude * factor, magnitude * reactanceFactor)
+      },
+    },
+    {
+      id: 'complex-impedance-from-magnitude-and-angle',
+      target: 'impedanceComplex',
+      inputs: ['impedanceMagnitude', 'phaseAngle'],
+      displayFormula: 'Z = |Z| ∠ theta',
+      description: 'Converts impedance magnitude and phase angle into rectangular form.',
+      priority: 8,
+      compute: (values) =>
+        fromPolar(getScalar(values, 'impedanceMagnitude'), getScalar(values, 'phaseAngle')),
+    },
+    {
       id: 'complex-impedance-from-r-xl-xc',
       target: 'impedanceComplex',
       inputs: ['resistance', 'inductiveReactance', 'capacitiveReactance'],
@@ -1046,6 +1258,38 @@ export const formulaFamilies: FormulaFamily[] = [
       validate: (values) => nonZero(Math.tan(getScalar(values, 'phaseAngle')), 'tan(theta)'),
       compute: (values) =>
         scalar(getScalar(values, 'netReactance') / Math.tan(getScalar(values, 'phaseAngle'))),
+    },
+  ]),
+  family('equivalent-parallel-rl', 'Equivalent parallel RL conversion', '15', [
+    {
+      id: 'parallel-resistance-from-series-r-xl',
+      target: 'equivalentParallelResistance',
+      inputs: ['resistance', 'inductiveReactance'],
+      displayFormula: 'Rp = (R^2 + XL^2) / R',
+      description: 'Converts a series RL pair into its equivalent parallel resistance.',
+      priority: 8,
+      validate: (values) => positive(getScalar(values, 'resistance'), 'Resistance'),
+      compute: (values) => {
+        const resistance = getScalar(values, 'resistance')
+        const reactance = getScalar(values, 'inductiveReactance')
+        return scalar((resistance ** 2 + reactance ** 2) / resistance)
+      },
+    },
+    {
+      id: 'parallel-reactance-from-series-r-xl',
+      target: 'equivalentParallelInductiveReactance',
+      inputs: ['resistance', 'inductiveReactance'],
+      displayFormula: 'XLp = (R^2 + XL^2) / XL',
+      description:
+        'Converts a series RL pair into its equivalent parallel inductive reactance.',
+      priority: 8,
+      validate: (values) =>
+        positive(getScalar(values, 'inductiveReactance'), 'Inductive reactance'),
+      compute: (values) => {
+        const resistance = getScalar(values, 'resistance')
+        const reactance = getScalar(values, 'inductiveReactance')
+        return scalar((resistance ** 2 + reactance ** 2) / reactance)
+      },
     },
   ]),
   family('capacitance-omega', 'Capacitance from angular frequency', '14', [

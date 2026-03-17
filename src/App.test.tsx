@@ -3,36 +3,41 @@ import { describe, expect, it } from 'vitest'
 import App from './App'
 
 describe('App', () => {
-  it('renders the offline deterministic solver shell', () => {
+  it('renders the quiz-focused deterministic solver shell', () => {
     render(<App />)
 
     expect(
-      screen.getByRole('heading', { name: /AC Circuits Formula Selector and Solver/i }),
+      screen.getByRole('heading', { name: /CH 15 and 16 AC Quiz Math Solver/i }),
+    ).toBeInTheDocument()
+    expect(screen.getByText(/Math questions only/i)).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /Solve quiz goal/i }),
     ).toBeInTheDocument()
     expect(
-      screen.getByText(/Chapter 10, 11, and 13-17 workflows live now/i),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: /Solve from variables/i }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('tab', { name: /Textbook labels/i }),
+      screen.getByRole('tab', { name: /Quiz math goal/i }),
     ).toBeInTheDocument()
     expect(
       screen.getByRole('tab', { name: /Series circuit from diagram/i }),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('tab', { name: /Series-parallel network/i }),
+      screen.getByRole('tab', { name: /Mixed series-parallel network/i }),
     ).toBeInTheDocument()
+    expect(screen.queryByRole('tab', { name: /Textbook labels/i })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('tab', { name: /Parallel circuit from diagram/i }),
+    ).not.toBeInTheDocument()
+
+    const questionGoalSelect = screen.getAllByLabelText(/Question goal/i)[0]
+    expect(questionGoalSelect.innerHTML).not.toMatch(/Chapter 10|Chapter 11|Chapter 13|Chapter 14|Chapter 17/i)
   })
 
-  it('lets textbook label mode split a problem into separate parts', () => {
+  it('shows the quiz figure quick loads', () => {
     render(<App />)
 
-    fireEvent.click(screen.getAllByRole('button', { name: /Add part/i })[0])
-
-    expect(screen.getByRole('tab', { name: /Part B/i })).toBeInTheDocument()
-    expect(screen.getByText(/Part B stays separate from every other part/i)).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /Figure 15.2/i }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('button', { name: /Figure 15.6/i }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('button', { name: /Figure 15.3/i }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('button', { name: /Question 18 mixed network/i }).length).toBeGreaterThan(0)
   })
 
   it('shows light, dark, and system theme controls', () => {
@@ -45,24 +50,20 @@ describe('App', () => {
     expect(themeTabs.getByRole('tab', { name: /System/i })).toBeInTheDocument()
   })
 
-  it('orders chapter-goal options by chapter and includes the Chapter 17 handoff', () => {
+  it('limits question-goal options to the quiz math families', () => {
     render(<App />)
 
     const workflowTabs = within(screen.getAllByRole('tablist', { name: /Guided workflow/i })[0])
-    fireEvent.click(workflowTabs.getByRole('tab', { name: /Chapter math goal/i }))
+    fireEvent.click(workflowTabs.getByRole('tab', { name: /Quiz math goal/i }))
 
     const select = screen.getAllByLabelText(/Question goal/i)[0] as HTMLSelectElement
     const optionLabels = Array.from(select.options).map((option) => option.textContent ?? '')
 
-    expect(optionLabels.indexOf('Find total capacitance of capacitors in parallel')).toBeGreaterThan(-1)
-    expect(optionLabels.indexOf('Find RL time constant from inductance and resistance')).toBeGreaterThan(
-      optionLabels.indexOf('Find total capacitance of capacitors in parallel'),
-    )
-    expect(optionLabels.indexOf('Find period from frequency')).toBeGreaterThan(
-      optionLabels.indexOf('Find RL time constant from inductance and resistance'),
-    )
-    expect(optionLabels).toContain('Open the Chapter 17 builder for total impedance')
-    expect(optionLabels).toContain('Open the Chapter 17 builder for source current')
-    expect(optionLabels).toContain('Open the Chapter 17 builder for real power')
+    expect(optionLabels).toContain('Find inductive reactance from frequency and inductance')
+    expect(optionLabels).toContain('Find rectangular impedance from power, voltage, and power factor')
+    expect(optionLabels).toContain('Find equivalent parallel resistance from series R and XL')
+    expect(optionLabels).toContain('Find capacitive susceptance from frequency and capacitance')
+    expect(optionLabels).not.toContain('Find total capacitance of capacitors in parallel')
+    expect(optionLabels).not.toContain('Write a current phasor as a sinusoidal current expression')
   })
 })
