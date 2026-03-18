@@ -1,6 +1,6 @@
-# CH 15 and 16 AC Quiz Math Solver
+# CH 15, 16, and 17 AC Homework and Quiz Math Solver
 
-A local-first deterministic circuits app scoped to the math-only problem families from the Chapter 15 and 16 quiz screenshots.
+A local-first deterministic circuits app scoped to the math-only problem families that appear in Scott's assigned homework files and screenshot sets for Chapters 15, 16, and 17.
 
 This shell intentionally excludes:
 
@@ -10,9 +10,41 @@ This shell intentionally excludes:
 
 The app does not guess. It only solves from explicit formulas and clear inputs.
 
+## Scope guardrails
+
+This repo is intentionally **not** trying to cover the entire textbook or every formula in each chapter.
+
+The target scope is only:
+
+- the Chapter 15 homework file
+- the Chapter 16 homework file
+- the Chapter 17 homework file
+- the screenshot folders and study-guide captures that Scott actually uses
+
+If a future contributor works on this app, they should keep the product narrow:
+
+- prioritize deterministic workflows for the assigned problems
+- do not widen scope to unrelated textbook material unless it appears in the homework or screenshots
+- prefer exposing existing deterministic solver paths over adding broad new surface area
+
+## Cloud handoff
+
+If you are picking this up in a cloud workspace, read:
+
+- `docs/cloud-codex-handoff.md`
+- `docs/homework-audit-2026-03-18.md`
+
+Those documents describe:
+
+- the intended scope
+- the source homework and screenshot files
+- what was already audited
+- what work was in progress
+- where the next implementation pass should continue
+
 ## What the app covers
 
-The current UI is focused on Chapter 15 and 16 quiz math, including:
+The current UI is focused on the Chapter 15, 16, and 17 homework-and-screenshot math, including:
 
 - inductive reactance and capacitive reactance
 - inductor and capacitor impedance
@@ -26,6 +58,7 @@ The current UI is focused on Chapter 15 and 16 quiz math, including:
 - capacitive susceptance
 - series RL, RC, and RLC diagram entry
 - mixed series-parallel impedance reduction for the quiz network problems
+- mixed-network source current and real-power solves for Chapter 17 style reductions
 - formula previews on each quiz goal so the user can see the solve path before entering values
 
 ## UI modes
@@ -37,7 +70,7 @@ The app currently exposes two working modes:
   - `Series circuit from diagram`
   - `Mixed series-parallel network`
 - `Formula mode`
-  - direct quantity-based solving within the same Chapter 15 and 16 quiz scope
+  - direct quantity-based solving within the same Chapter 15, 16, and 17 quiz scope
 
 ## Deterministic behavior
 

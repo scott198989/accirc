@@ -7,7 +7,7 @@ describe('App', () => {
     render(<App />)
 
     expect(
-      screen.getByRole('heading', { name: /CH 15 and 16 AC Quiz Math Solver/i }),
+      screen.getByRole('heading', { name: /CH 15, 16, and 17 AC Quiz Math Solver/i }),
     ).toBeInTheDocument()
     expect(screen.getByText(/Math questions only/i)).toBeInTheDocument()
     expect(
@@ -29,7 +29,7 @@ describe('App', () => {
 
     const questionGoalSelect = screen.getAllByLabelText(/Question goal/i)[0]
     expect(questionGoalSelect.innerHTML).not.toMatch(/Chapter 10|Chapter 11|Chapter 13|Chapter 14|Chapter 17/i)
-  })
+  }, 15000)
 
   it('shows the quiz figure quick loads', () => {
     render(<App />)
@@ -39,6 +39,9 @@ describe('App', () => {
     expect(screen.getAllByRole('button', { name: /Figure 15.3/i }).length).toBeGreaterThan(0)
     expect(
       screen.getAllByRole('button', { name: /Question 18 resistor \|\| coil/i }).length,
+    ).toBeGreaterThan(0)
+    expect(
+      screen.getAllByRole('button', { name: /Chapter 17 Problem 1 source current/i }).length,
     ).toBeGreaterThan(0)
   })
 
@@ -100,5 +103,19 @@ describe('App', () => {
     expect(screen.getByRole('button', { name: /Add component known/i })).toBeInTheDocument()
     expect(screen.getByText(/Known frequency if needed/i)).toBeInTheDocument()
     expect(screen.getByText(/Known source voltage if needed/i)).toBeInTheDocument()
+  }, 15000)
+
+  it('exposes the extra mixed-network goals already supported by the solver', () => {
+    render(<App />)
+
+    const workflowTabs = within(screen.getAllByRole('tablist', { name: /Guided workflow/i })[0])
+    fireEvent.click(workflowTabs.getByRole('tab', { name: /Mixed series-parallel network/i }))
+
+    const select = screen.getAllByLabelText(/Question goal/i)[0] as HTMLSelectElement
+    const optionLabels = Array.from(select.options).map((option) => option.textContent ?? '')
+
+    expect(optionLabels).toContain('Total impedance of a mixed series-parallel network')
+    expect(optionLabels).toContain('Source current of a mixed series-parallel network')
+    expect(optionLabels).toContain('Real power of a mixed series-parallel network')
   })
 })

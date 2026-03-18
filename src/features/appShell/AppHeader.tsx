@@ -29,15 +29,15 @@ export default function AppHeader({
       <header className="hero">
         <div className="hero__copy">
           <p className="eyebrow">Offline. Deterministic. Quiz-focused.</p>
-          <h1>CH 15 and 16 AC Quiz Math Solver</h1>
+          <h1>CH 15, 16, and 17 AC Quiz Math Solver</h1>
           <p className="hero__lede">
             This build is intentionally narrowed to the math-only problem types shown in the
-            Chapter 15 and 16 quiz screenshots. It keeps the solve path deterministic while
+            Chapter 15, 16, and 17 quiz materials. It keeps the solve path deterministic while
             hiding the theory-only and out-of-scope workflows.
           </p>
           <div className="hero__stats">
             <span>Math questions only</span>
-            <span>Series and mixed-network solves</span>
+            <span>Series, parallel, and mixed-network solves</span>
             <span>Phasor and impedance conversions</span>
             <span>No network needed at runtime</span>
           </div>
@@ -99,7 +99,7 @@ export default function AppHeader({
           <p className="panel__note">
             Theory prompts, true-false items, and the legacy extra workflows are intentionally
             excluded here. This shell only exposes the math families needed by the quiz
-            screenshots.
+            materials.
           </p>
         </aside>
       </header>

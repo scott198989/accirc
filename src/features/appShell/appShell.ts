@@ -199,6 +199,26 @@ export const guidedGoalOptions: GuidedGoalOption[] = [
     description: 'Best for problems asking for Z in rectangular and polar form.',
   },
   {
+    value: 'series-source-current',
+    label: 'Source current of a series circuit',
+    description: 'Uses the source voltage and total series impedance to find the circuit current.',
+  },
+  {
+    value: 'series-resistor-voltage',
+    label: 'Voltage across total series resistance',
+    description: 'Finds the phasor voltage dropped across the full resistive portion of the series path.',
+  },
+  {
+    value: 'series-inductor-voltage',
+    label: 'Voltage across total series inductance',
+    description: 'Finds the phasor voltage across the combined inductive reactance.',
+  },
+  {
+    value: 'series-capacitor-voltage',
+    label: 'Voltage across total series capacitance',
+    description: 'Finds the phasor voltage across the combined capacitive reactance.',
+  },
+  {
     value: 'series-phase-angle',
     label: 'Phase angle of a series circuit',
     description: 'Uses the total net reactance and resistance to find the impedance angle.',
@@ -208,6 +228,11 @@ export const guidedGoalOptions: GuidedGoalOption[] = [
     label: 'Power factor of a series circuit',
     description: 'Finds the power factor from the impedance angle.',
   },
+  {
+    value: 'series-real-power',
+    label: 'Real power of a series circuit',
+    description: 'Uses the source voltage, derived current, and total series resistance to find real power.',
+  },
 ]
 
 export const seriesParallelGoalOptions: SeriesParallelGoalOption[] = [
@@ -215,6 +240,16 @@ export const seriesParallelGoalOptions: SeriesParallelGoalOption[] = [
     value: 'series-parallel-impedance',
     label: 'Total impedance of a mixed series-parallel network',
     description: 'Reduces the entered mixed network into one total impedance.',
+  },
+  {
+    value: 'series-parallel-source-current',
+    label: 'Source current of a mixed series-parallel network',
+    description: 'Uses the source voltage and reduced total impedance to find the source current.',
+  },
+  {
+    value: 'series-parallel-real-power',
+    label: 'Real power of a mixed series-parallel network',
+    description: 'Uses the reduced network, source current, and phase angle to find real power.',
   },
 ]
 
@@ -305,6 +340,58 @@ export const seriesParallelSamples: SeriesParallelSample[] = [
               valueMode: 'inductance',
               rawValue: '100',
               unitId: 'mh',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    id: 'chapter-17-problem-1',
+    title: 'Chapter 17 Problem 1 source current',
+    goal: 'series-parallel-source-current',
+    frequencyRawValue: '',
+    frequencyUnitId: 'hz',
+    sourceVoltageRawValue: '14',
+    sourceVoltageUnitId: 'v',
+    root: {
+      id: 'sample-ch17-p1-root',
+      type: 'group',
+      label: 'ZT',
+      topology: 'series',
+      children: [
+        {
+          id: 'sample-ch17-p1-xl1',
+          type: 'component',
+          label: 'XL1',
+          kind: 'inductor',
+          valueMode: 'reactance',
+          rawValue: '4',
+          unitId: 'ohm',
+        },
+        {
+          id: 'sample-ch17-p1-parallel',
+          type: 'group',
+          label: 'Parallel block',
+          topology: 'parallel',
+          children: [
+            {
+              id: 'sample-ch17-p1-xc',
+              type: 'component',
+              label: 'XC',
+              kind: 'capacitor',
+              valueMode: 'reactance',
+              rawValue: '8',
+              unitId: 'ohm',
+            },
+            {
+              id: 'sample-ch17-p1-r',
+              type: 'component',
+              label: 'R',
+              kind: 'resistor',
+              valueMode: 'resistance',
+              rawValue: '12',
+              unitId: 'ohm',
             },
           ],
         },
