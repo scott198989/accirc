@@ -1208,12 +1208,32 @@ export const formulaFamilies: FormulaFamily[] = [
       inputs: ['resistance', 'inductiveReactance', 'capacitiveReactance'],
       displayFormula: 'Z = R + j(XL - XC)',
       description: 'Computes complex impedance from resistance and reactances.',
-      priority: 8,
+      priority: 9,
       compute: (values) =>
         complex(
           getScalar(values, 'resistance'),
           getScalar(values, 'inductiveReactance') - getScalar(values, 'capacitiveReactance'),
         ),
+    },
+    {
+      id: 'complex-impedance-from-r-xl',
+      target: 'impedanceComplex',
+      inputs: ['resistance', 'inductiveReactance'],
+      displayFormula: 'Z = R + jXL',
+      description: 'Computes complex impedance from resistance and inductive reactance.',
+      priority: 7,
+      compute: (values) =>
+        complex(getScalar(values, 'resistance'), getScalar(values, 'inductiveReactance')),
+    },
+    {
+      id: 'complex-impedance-from-r-xc',
+      target: 'impedanceComplex',
+      inputs: ['resistance', 'capacitiveReactance'],
+      displayFormula: 'Z = R - jXC',
+      description: 'Computes complex impedance from resistance and capacitive reactance.',
+      priority: 7,
+      compute: (values) =>
+        complex(getScalar(values, 'resistance'), -getScalar(values, 'capacitiveReactance')),
     },
     {
       id: 'impedance-magnitude-from-r-and-x',
@@ -1258,6 +1278,37 @@ export const formulaFamilies: FormulaFamily[] = [
       validate: (values) => nonZero(Math.tan(getScalar(values, 'phaseAngle')), 'tan(theta)'),
       compute: (values) =>
         scalar(getScalar(values, 'netReactance') / Math.tan(getScalar(values, 'phaseAngle'))),
+    },
+  ]),
+  family('parallel-resistor-coil-impedance', 'Parallel resistor with RL coil', '16', [
+    {
+      id: 'complex-impedance-from-parallel-resistor-and-coil',
+      target: 'impedanceComplex',
+      inputs: ['parallelResistance', 'coilResistance', 'frequency', 'inductance'],
+      displayFormula: 'ZT = 1 / (1 / Rparallel + 1 / (Rcoil + j2πfL))',
+      description:
+        'Computes the total impedance of a resistor in parallel with a coil that has internal resistance.',
+      priority: 8,
+      validate: (values) =>
+        validateAll(
+          positive(getScalar(values, 'parallelResistance'), 'Parallel resistance'),
+          positive(getScalar(values, 'coilResistance'), 'Coil resistance'),
+          positive(getScalar(values, 'frequency'), 'Frequency'),
+          positive(getScalar(values, 'inductance'), 'Inductance'),
+        ),
+      compute: (values) => {
+        const parallelResistance = getScalar(values, 'parallelResistance')
+        const coilResistance = getScalar(values, 'coilResistance')
+        const frequency = getScalar(values, 'frequency')
+        const inductance = getScalar(values, 'inductance')
+        const reactance = TAU * frequency * inductance
+        const coilImpedance = complex(coilResistance, reactance)
+        const totalAdmittance = addComplex(
+          complex(1 / parallelResistance, 0),
+          divideComplex(complex(1, 0), coilImpedance),
+        )
+        return divideComplex(complex(1, 0), totalAdmittance)
+      },
     },
   ]),
   family('equivalent-parallel-rl', 'Equivalent parallel RL conversion', '15', [

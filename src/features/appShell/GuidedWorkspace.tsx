@@ -1,4 +1,4 @@
-import { quantityMap } from '../../core'
+import { quantityMap, type QuantityId } from '../../core'
 import { type GuidedMathGoalDefinition, type GuidedMathResult } from '../guidedMathGoals'
 import type {
   GuidedComponentInput,
@@ -19,6 +19,7 @@ import {
   guidedMathGoalGroups,
   guidedWorkflowOptions,
   placeholderForGuided,
+  quantityGroups,
   seriesParallelGoalOptions,
   seriesParallelSamples,
   unitsForGuided,
@@ -44,6 +45,7 @@ interface GuidedWorkspaceProps {
   seriesParallelRoot: GuidedSeriesParallelGroupNode
   sourceVoltageRawValue: string
   sourceVoltageUnitId: string
+  onAddGuidedMathRow: () => void
   onAddGuidedComponent: () => void
   onAddSeriesParallelComponent: (parentId: string, kind: GuidedComponentKind) => void
   onAddSeriesParallelGroup: (parentId: string, topology: GuidedSeriesParallelTopology) => void
@@ -52,6 +54,7 @@ interface GuidedWorkspaceProps {
   onGuidedGoalChange: (goal: GuidedSeriesGoal) => void
   onGuidedMathGoalChange: (goalId: string) => void
   onGuidedWorkflowChange: (workflow: GuidedWorkflow) => void
+  onRemoveGuidedMathRow: (rowId: string) => void
   onRemoveGuidedComponent: (componentId: string) => void
   onRemoveSeriesParallelNode: (nodeId: string) => void
   onResetSeriesParallelBuilder: () => void
@@ -86,6 +89,7 @@ export default function GuidedWorkspace({
   seriesParallelRoot,
   sourceVoltageRawValue,
   sourceVoltageUnitId,
+  onAddGuidedMathRow,
   onAddGuidedComponent,
   onAddSeriesParallelComponent,
   onAddSeriesParallelGroup,
@@ -94,6 +98,7 @@ export default function GuidedWorkspace({
   onGuidedGoalChange,
   onGuidedMathGoalChange,
   onGuidedWorkflowChange,
+  onRemoveGuidedMathRow,
   onRemoveGuidedComponent,
   onRemoveSeriesParallelNode,
   onResetSeriesParallelBuilder,
@@ -114,9 +119,11 @@ export default function GuidedWorkspace({
     seriesParallelGoalOptions[0]
 
   const addAction =
-    guidedWorkflow === 'series-builder'
-      ? { label: 'Add component', onClick: onAddGuidedComponent }
-      : null
+    guidedWorkflow === 'chapter-goal'
+      ? { label: 'Add known', onClick: onAddGuidedMathRow }
+      : guidedWorkflow === 'series-builder'
+        ? { label: 'Add component known', onClick: onAddGuidedComponent }
+        : null
 
   return (
     <main className="workspace">
@@ -158,6 +165,7 @@ export default function GuidedWorkspace({
             guidedMathGoalId={guidedMathGoalId}
             guidedMathRows={guidedMathRows}
             onGuidedMathGoalChange={onGuidedMathGoalChange}
+            onRemoveGuidedMathRow={onRemoveGuidedMathRow}
             onSolveGuidedMath={onSolveGuidedMath}
             onUpdateGuidedMathRow={onUpdateGuidedMathRow}
             selectedMathGoal={selectedMathGoal}
@@ -233,7 +241,7 @@ function renderWorkflowHelp(guidedWorkflow: GuidedWorkflow) {
       <div className="help-card">
         <p className="detail-card__eyebrow">How quiz-goal mode works</p>
         <p>1. Pick the exact kind of answer the quiz asks for.</p>
-        <p>2. Enter only the values shown in the problem.</p>
+        <p>2. The required knowns load automatically, and you can add extra knowns when the quiz gives more values than the base pattern.</p>
         <p>3. Click solve and let the deterministic rules engine pick the formula path.</p>
       </div>
     )
@@ -244,7 +252,7 @@ function renderWorkflowHelp(guidedWorkflow: GuidedWorkflow) {
       <div className="help-card">
         <p className="detail-card__eyebrow">How the series builder works</p>
         <p>1. Pick the exact quantity the quiz asks for.</p>
-        <p>2. Add each component in the order the diagram shows it.</p>
+        <p>2. Add each component known in the order the diagram shows it.</p>
         <p>3. Enter reactance directly in ohms, or enter L or C with frequency.</p>
         <p>4. Add the source voltage only when the selected goal needs it.</p>
       </div>
@@ -252,20 +260,22 @@ function renderWorkflowHelp(guidedWorkflow: GuidedWorkflow) {
   }
 
   return (
-    <div className="help-card">
-      <p className="detail-card__eyebrow">How the mixed-network builder works</p>
-      <p>1. Recreate the nested series and parallel blocks from the quiz diagram.</p>
-      <p>2. Enter frequency when any inductor is given in henrys or any capacitor is given in farads.</p>
-      <p>3. Add the source voltage only when the selected goal needs it.</p>
-      <p>4. Solve to reduce the full network into one total impedance.</p>
-    </div>
-  )
-}
+      <div className="help-card">
+        <p className="detail-card__eyebrow">How the mixed-network builder works</p>
+        <p>1. Recreate the nested series and parallel blocks from the quiz diagram.</p>
+        <p>2. Use the network editor buttons to add each component known and any nested branch group the diagram shows.</p>
+        <p>3. Enter frequency when any inductor is given in henrys or any capacitor is given in farads.</p>
+        <p>4. Add the source voltage only when the selected goal needs it.</p>
+        <p>5. Solve to reduce the full network into one total impedance.</p>
+      </div>
+    )
+  }
 
 function ChapterGoalBuilder({
   guidedMathGoalId,
   guidedMathRows,
   onGuidedMathGoalChange,
+  onRemoveGuidedMathRow,
   onSolveGuidedMath,
   onUpdateGuidedMathRow,
   selectedMathGoal,
@@ -273,6 +283,7 @@ function ChapterGoalBuilder({
   guidedMathGoalId: string
   guidedMathRows: GuidedMathRow[]
   onGuidedMathGoalChange: (goalId: string) => void
+  onRemoveGuidedMathRow: (rowId: string) => void
   onSolveGuidedMath: () => void
   onUpdateGuidedMathRow: (rowId: string, updates: Partial<GuidedMathRow>) => void
   selectedMathGoal: GuidedMathGoalDefinition
@@ -299,6 +310,16 @@ function ChapterGoalBuilder({
         <p className="detail-card__eyebrow">Quiz math family</p>
         <h3>{selectedMathGoal.section}</h3>
         <p>{selectedMathGoal.description}</p>
+        {selectedMathGoal.formulaSummary && selectedMathGoal.formulaSummary.length > 0 && (
+          <div className="formula-summary">
+            <p className="detail-card__eyebrow">Formula path</p>
+            <ul className="formula-summary__list">
+              {selectedMathGoal.formulaSummary.map((formula) => (
+                <li key={`${selectedMathGoal.id}-${formula}`}>{formula}</li>
+              ))}
+            </ul>
+          </div>
+        )}
         {selectedMathGoal.note && <p>{selectedMathGoal.note}</p>}
       </article>
 
@@ -308,13 +329,35 @@ function ChapterGoalBuilder({
 
           return (
             <article className="row-card row-card--symbol" key={row.id}>
-              <div>
-                <p className="detail-card__eyebrow">{definition.label}</p>
-                <h3>{definition.symbol}</h3>
-                <p className="row-card__hint">
-                  {definition.description} Example: {definition.placeholder}
-                </p>
-              </div>
+              {row.isRequired ? (
+                <div>
+                  <p className="detail-card__eyebrow">Required known</p>
+                  <h3>{definition.symbol}</h3>
+                  <p className="row-card__hint">
+                    {definition.label}. {definition.description} Example: {definition.placeholder}
+                  </p>
+                </div>
+              ) : (
+                <label className="field">
+                  <span>Known quantity</span>
+                  <select
+                    value={row.quantityId}
+                    onChange={(event) =>
+                      onUpdateGuidedMathRow(row.id, { quantityId: event.target.value as QuantityId })
+                    }
+                  >
+                    {quantityGroups.map(([category, items]) => (
+                      <optgroup key={category} label={category}>
+                        {items.map((item) => (
+                          <option key={item.id} value={item.id}>
+                            {item.label} ({item.symbol})
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
+                </label>
+              )}
 
               <label className="field">
                 <span>Value</span>
@@ -338,6 +381,22 @@ function ChapterGoalBuilder({
                   ))}
                 </select>
               </label>
+
+              {row.isRequired ? null : (
+                <>
+                  <button
+                    className="ghost-button ghost-button--danger"
+                    onClick={() => onRemoveGuidedMathRow(row.id)}
+                    type="button"
+                  >
+                    Remove
+                  </button>
+
+                  <p className="row-card__hint">
+                    Optional extra known. {definition.description} Example: {definition.placeholder}
+                  </p>
+                </>
+              )}
             </article>
           )
         })}
@@ -345,8 +404,8 @@ function ChapterGoalBuilder({
 
       <div className="builder__footer">
         <p>
-          Quiz-goal mode locks the expected inputs to the selected math pattern so you only fill in
-          the numbers and units.
+          Quiz-goal mode preloads the required knowns for the selected pattern, and any extra known
+          rows you add are optional helpers for similar quiz variations.
         </p>
         <button className="primary-button" onClick={onSolveGuidedMath} type="button">
           Solve quiz goal
@@ -462,6 +521,14 @@ function SeriesParallelBuilder({
         </p>
       </article>
 
+      <article className="detail-card">
+        <p className="detail-card__eyebrow">Known network values</p>
+        <p>
+          Add resistor, inductor, capacitor, series-group, and parallel-group knowns directly in
+          the tree editor below until the structure matches the printed network.
+        </p>
+      </article>
+
       <SeriesParallelNodeEditor
         node={seriesParallelRoot}
         rootId={seriesParallelRoot.id}
@@ -557,8 +624,8 @@ function DiagramBuilder({
 
       <div className="builder__footer">
         <p>
-          The app aggregates the series elements, converts L and C into reactance when needed, and
-          then solves the final target with the deterministic rules engine.
+          The app aggregates the entered known components, converts L and C into reactance when
+          needed, and then solves the final target with the deterministic rules engine.
         </p>
         <button className="primary-button" onClick={onSolveGuidedMode} type="button">
           Solve series circuit
@@ -592,7 +659,7 @@ function FrequencyAndSourceInputs({
   return (
     <div className="detail-grid detail-grid--inputs">
       <article className="detail-card">
-        <p className="detail-card__eyebrow">Frequency if needed</p>
+        <p className="detail-card__eyebrow">Known frequency if needed</p>
         <div className="frequency-row">
           <label className="field">
             <span>Value</span>
@@ -617,7 +684,7 @@ function FrequencyAndSourceInputs({
       </article>
 
       <article className="detail-card">
-        <p className="detail-card__eyebrow">Source voltage if needed</p>
+        <p className="detail-card__eyebrow">Known source voltage if needed</p>
         <div className="frequency-row">
           <label className="field">
             <span>Value</span>

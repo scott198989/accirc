@@ -17,6 +17,8 @@ const representativeKnowns: KnownValueMap = {
   voltage: scalar(120),
   current: scalar(10),
   resistance: scalar(12),
+  coilResistance: scalar(45),
+  parallelResistance: scalar(4700),
   conductance: scalar(1 / 12),
   electricForce: scalar(0.36),
   electricFieldStrength: scalar(60500),

@@ -27,6 +27,7 @@ export interface KnownRow extends SolverInputRow {
 
 export interface GuidedMathRow extends SolverInputRow {
   id: string
+  isRequired: boolean
 }
 
 export interface GuidedGoalOption {
@@ -71,6 +72,9 @@ const quizMathGoalIds = new Set([
   'inductive-reactance-from-frequency-and-inductance',
   'capacitive-reactance-from-frequency-and-capacitance',
   'power-factor-from-phase-angle',
+  'series-impedance-from-r-and-xl',
+  'series-impedance-from-r-and-xc',
+  'series-impedance-from-r-xl-xc',
   'series-impedance-magnitude-from-r-f-l',
   'series-impedance-magnitude-from-r-f-c',
   'net-reactance-from-frequency-inductance-and-capacitance',
@@ -81,6 +85,7 @@ const quizMathGoalIds = new Set([
   'impedance-from-source-voltage-and-current-phasors',
   'equivalent-parallel-resistance-from-series-r-xl',
   'equivalent-parallel-reactance-from-series-r-xl',
+  'parallel-impedance-from-resistor-and-coil',
   'capacitive-susceptance-from-frequency-and-capacitance',
 ])
 
@@ -89,6 +94,8 @@ const quizMathQuantityIds = new Set<QuantityId>([
   'voltage',
   'current',
   'resistance',
+  'coilResistance',
+  'parallelResistance',
   'inductance',
   'capacitance',
   'inductiveReactance',
@@ -131,12 +138,21 @@ const scopedGoalGroups = [
     ],
   },
   {
-    key: 'series-ac-and-power',
-    label: 'Series AC and power',
+    key: 'series-ac-direct',
+    label: 'Direct series impedance questions',
     goalIds: [
+      'series-impedance-from-r-and-xl',
+      'series-impedance-from-r-and-xc',
+      'series-impedance-from-r-xl-xc',
       'series-impedance-magnitude-from-r-f-l',
       'series-impedance-magnitude-from-r-f-c',
       'net-reactance-from-frequency-inductance-and-capacitance',
+    ],
+  },
+  {
+    key: 'power-and-relationships',
+    label: 'Power and source relationships',
+    goalIds: [
       'power-factor-from-phase-angle',
       'impedance-from-power-voltage-and-power-factor',
       'impedance-from-source-voltage-and-current-phasors',
@@ -148,6 +164,7 @@ const scopedGoalGroups = [
     goalIds: [
       'equivalent-parallel-resistance-from-series-r-xl',
       'equivalent-parallel-reactance-from-series-r-xl',
+      'parallel-impedance-from-resistor-and-coil',
     ],
   },
   {
@@ -204,7 +221,7 @@ export const seriesParallelGoalOptions: SeriesParallelGoalOption[] = [
 export const guidedSamples: GuidedSample[] = [
   {
     id: 'figure-15-2',
-    title: 'Figure 15.2',
+    title: 'Figure 15.2 series RL',
     frequencyRawValue: '',
     frequencyUnitId: 'hz',
     sourceVoltageRawValue: '',
@@ -216,7 +233,7 @@ export const guidedSamples: GuidedSample[] = [
   },
   {
     id: 'figure-15-6',
-    title: 'Figure 15.6',
+    title: 'Figure 15.6 series RL',
     frequencyRawValue: '',
     frequencyUnitId: 'hz',
     sourceVoltageRawValue: '',
@@ -228,7 +245,7 @@ export const guidedSamples: GuidedSample[] = [
   },
   {
     id: 'figure-15-3',
-    title: 'Figure 15.3',
+    title: 'Figure 15.3 series RLC',
     frequencyRawValue: '',
     frequencyUnitId: 'hz',
     sourceVoltageRawValue: '',
@@ -244,7 +261,7 @@ export const guidedSamples: GuidedSample[] = [
 export const seriesParallelSamples: SeriesParallelSample[] = [
   {
     id: 'question-18',
-    title: 'Question 18 mixed network',
+    title: 'Question 18 resistor || coil',
     goal: 'series-parallel-impedance',
     frequencyRawValue: '500',
     frequencyUnitId: 'hz',
@@ -313,12 +330,14 @@ export function makeGuidedMathRow(
   quantityId: QuantityId,
   rawValue = '',
   unitId = quantityMap[quantityId].defaultUnitId,
+  isRequired = true,
 ): GuidedMathRow {
   return {
     id: crypto.randomUUID(),
     quantityId,
     rawValue,
     unitId,
+    isRequired,
   }
 }
 

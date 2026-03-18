@@ -11,6 +11,8 @@ export type QuantityId =
   | 'voltage'
   | 'current'
   | 'resistance'
+  | 'coilResistance'
+  | 'parallelResistance'
   | 'conductance'
   | 'electricForce'
   | 'electricFieldStrength'

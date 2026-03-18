@@ -16,14 +16,17 @@ The current UI is focused on Chapter 15 and 16 quiz math, including:
 
 - inductive reactance and capacitive reactance
 - inductor and capacitor impedance
+- direct series RL, RC, and RLC impedance workflows
 - series impedance magnitude and phase relationships
 - power factor from phase angle
 - rectangular impedance from power, voltage, and power factor
 - impedance from voltage and current phasors
 - equivalent parallel RL conversion
+- resistor-in-parallel-with-coil impedance
 - capacitive susceptance
 - series RL, RC, and RLC diagram entry
 - mixed series-parallel impedance reduction for the quiz network problems
+- formula previews on each quiz goal so the user can see the solve path before entering values
 
 ## UI modes
 

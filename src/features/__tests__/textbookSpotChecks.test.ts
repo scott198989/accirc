@@ -344,6 +344,39 @@ describe('textbook spot checks', () => {
     expect(result.value.imag).toBeCloseTo(1200, 8)
   })
 
+  it('matches quiz Questions 4 and 7 for total series RL impedance from R and XL', () => {
+    const goal = guidedMathGoalMap['series-impedance-from-r-and-xl']
+    const result = solveGuidedMathGoal(goal, [
+      { quantityId: 'resistance', rawValue: '50', unitId: 'ohm' },
+      { quantityId: 'inductiveReactance', rawValue: '20', unitId: 'ohm' },
+    ])
+
+    expect(result.status).toBe('solved')
+    if (result.status !== 'solved' || !('value' in result) || result.value.kind !== 'complex') {
+      return
+    }
+
+    expect(result.value.real).toBeCloseTo(50, 8)
+    expect(result.value.imag).toBeCloseTo(20, 8)
+  })
+
+  it('matches quiz Questions 23 and 28 for total series RLC impedance', () => {
+    const goal = guidedMathGoalMap['series-impedance-from-r-xl-xc']
+    const result = solveGuidedMathGoal(goal, [
+      { quantityId: 'resistance', rawValue: '10', unitId: 'ohm' },
+      { quantityId: 'inductiveReactance', rawValue: '20', unitId: 'ohm' },
+      { quantityId: 'capacitiveReactance', rawValue: '15', unitId: 'ohm' },
+    ])
+
+    expect(result.status).toBe('solved')
+    if (result.status !== 'solved' || !('value' in result) || result.value.kind !== 'complex') {
+      return
+    }
+
+    expect(result.value.real).toBeCloseTo(10, 8)
+    expect(result.value.imag).toBeCloseTo(5, 8)
+  })
+
   it('matches quiz Question 18 for the mixed-network impedance magnitude', () => {
     const root: GuidedSeriesParallelGroupNode = {
       id: 'root',
@@ -407,6 +440,23 @@ describe('textbook spot checks', () => {
     }
 
     expect(result.reference.totalImpedanceMagnitude.value).toBeCloseTo(313.67, 2)
+  })
+
+  it('matches quiz Questions 18 and 34 for the direct resistor-parallel-coil goal', () => {
+    const goal = guidedMathGoalMap['parallel-impedance-from-resistor-and-coil']
+    const result = solveGuidedMathGoal(goal, [
+      { quantityId: 'parallelResistance', rawValue: '4700', unitId: 'ohm' },
+      { quantityId: 'coilResistance', rawValue: '45', unitId: 'ohm' },
+      { quantityId: 'frequency', rawValue: '500', unitId: 'hz' },
+      { quantityId: 'inductance', rawValue: '100', unitId: 'mh' },
+    ])
+
+    expect(result.status).toBe('solved')
+    if (result.status !== 'solved' || !('value' in result) || result.value.kind !== 'complex') {
+      return
+    }
+
+    expect(Math.hypot(result.value.real, result.value.imag)).toBeCloseTo(313.67, 2)
   })
 
   it('matches quiz Question 31 for equivalent parallel RL conversion', () => {

@@ -59,7 +59,9 @@ function App() {
   const [rows, setRows] = useState<KnownRow[]>([makeFormulaRow('frequency')])
   const [formulaResult, setFormulaResult] = useState<SolveResult | null>(null)
   const [guidedMathRows, setGuidedMathRows] = useState<GuidedMathRow[]>(
-    makeGuidedMathRows(defaultGuidedMathGoal).map((row) => makeGuidedMathRow(row.quantityId)),
+    makeGuidedMathRows(defaultGuidedMathGoal).map((row) =>
+      makeGuidedMathRow(row.quantityId, row.rawValue, row.unitId, true),
+    ),
   )
   const [guidedMathResult, setGuidedMathResult] = useState<GuidedMathResult | null>(null)
   const [frequencyRawValue, setFrequencyRawValue] = useState('')
@@ -113,11 +115,13 @@ function App() {
       setFormulaResult(
         solveCircuitProblem(
           target,
-          rows.map((row) => ({
-            quantityId: row.quantityId,
-            rawValue: row.rawValue,
-            unitId: row.unitId,
-          })),
+          rows
+            .filter((row) => row.rawValue.trim().length > 0)
+            .map((row) => ({
+              quantityId: row.quantityId,
+              rawValue: row.rawValue,
+              unitId: row.unitId,
+            })),
         ),
       )
     })
@@ -133,17 +137,40 @@ function App() {
       setGuidedMathGoalId(goalId)
       setGuidedMathRows(
         makeGuidedMathRows(nextGoal).map((row) =>
-          makeGuidedMathRow(row.quantityId, row.rawValue, row.unitId),
+          makeGuidedMathRow(row.quantityId, row.rawValue, row.unitId, true),
         ),
       )
       setGuidedMathResult(null)
     })
   }
 
+  function addGuidedMathRow() {
+    setGuidedMathRows((current) => [...current, makeGuidedMathRow('voltage', '', 'v', false)])
+  }
+
   function updateGuidedMathRow(rowId: string, updates: Partial<GuidedMathRow>) {
     setGuidedMathRows((current) =>
-      current.map((row) => (row.id === rowId ? { ...row, ...updates } : row)),
+      current.map((row) => {
+        if (row.id !== rowId) {
+          return row
+        }
+
+        if (updates.quantityId) {
+          return {
+            ...row,
+            quantityId: updates.quantityId,
+            unitId: quantityMap[updates.quantityId].defaultUnitId,
+            rawValue: '',
+          }
+        }
+
+        return { ...row, ...updates }
+      }),
     )
+  }
+
+  function removeGuidedMathRow(rowId: string) {
+    setGuidedMathRows((current) => current.filter((row) => row.id !== rowId || row.isRequired))
   }
 
   function solveGuidedMathMode() {
@@ -151,11 +178,13 @@ function App() {
       setGuidedMathResult(
         solveGuidedMathGoal(
           selectedMathGoal,
-          guidedMathRows.map((row) => ({
-            quantityId: row.quantityId,
-            rawValue: row.rawValue,
-            unitId: row.unitId,
-          })),
+          guidedMathRows
+            .filter((row) => row.isRequired || row.rawValue.trim().length > 0)
+            .map((row) => ({
+              quantityId: row.quantityId,
+              rawValue: row.rawValue,
+              unitId: row.unitId,
+            })),
         ),
       )
     })
@@ -356,6 +385,7 @@ function App() {
           seriesParallelRoot={seriesParallelRoot}
           sourceVoltageRawValue={sourceVoltageRawValue}
           sourceVoltageUnitId={sourceVoltageUnitId}
+          onAddGuidedMathRow={addGuidedMathRow}
           onAddGuidedComponent={addGuidedComponent}
           onAddSeriesParallelComponent={addSeriesParallelComponentTo}
           onAddSeriesParallelGroup={addSeriesParallelGroupTo}
@@ -364,6 +394,7 @@ function App() {
           onGuidedGoalChange={setGuidedGoal}
           onGuidedMathGoalChange={changeGuidedMathGoal}
           onGuidedWorkflowChange={setGuidedWorkflow}
+          onRemoveGuidedMathRow={removeGuidedMathRow}
           onRemoveGuidedComponent={removeGuidedComponent}
           onRemoveSeriesParallelNode={removeSeriesParallelTreeNode}
           onResetSeriesParallelBuilder={resetSeriesParallelBuilder}
