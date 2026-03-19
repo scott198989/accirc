@@ -2,11 +2,13 @@
 
 A local-first deterministic circuits app scoped to the math-only problem families that appear in Scott's assigned homework files and screenshot sets for Chapters 15, 16, and 17.
 
-This shell intentionally excludes:
+The app now defaults to a plain `Fast Solve` flow:
 
-- theory prompts
-- true/false questions
-- legacy extra workflows
+- enter what you know
+- choose what the question wants
+- answer one small follow-up only if the numbers are ambiguous
+
+`Manual Override` still exists for builder-style problems, mixed networks, or forcing an exact path.
 
 The app does not guess. It only solves from explicit formulas and clear inputs.
 
@@ -133,16 +135,15 @@ The current UI is focused on the Chapter 15, 16, and 17 homework-and-screenshot 
 
 ## UI modes
 
-The app currently exposes two working modes:
+The app currently exposes:
 
-- `Guided mode`
-  - `Quiz math goal`
-  - `Series circuit from diagram`
-  - `Parallel circuit from diagram`
-  - `Mixed series-parallel network`
-  - `Textbook labels`
-- `Formula mode`
-  - direct quantity-based solving within the same Chapter 15, 16, and 17 quiz scope
+- `Fast Solve`
+  - plain-language `What I Have` rows
+  - a single `What I Need` target selector
+  - optional context only when the solve is ambiguous
+- `Manual Override`
+  - builder tools for series, parallel, mixed, and textbook-label workflows
+  - exact formula path forcing when the direct solve needs correction
 
 ## Deterministic behavior
 
@@ -213,9 +214,11 @@ src/
     solver.ts
     units.ts
   features/
+    fastSolve.ts
     guidedMathGoals.ts
     guidedSeriesImpedance.ts
     guidedSeriesParallelNetwork.ts
+    appShell/FastSolveWorkspace.tsx
   App.tsx
   index.css
 ```

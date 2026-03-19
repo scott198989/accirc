@@ -22,17 +22,17 @@ export default function AppHeader({
   return (
     <header className="hero">
       <div className="hero__copy">
-        <p className="eyebrow">Offline. Deterministic. Quiz-focused.</p>
+        <p className="eyebrow">Offline. Deterministic. Fast-solve first.</p>
         <h1>CH 15, 16, and 17 AC Quiz Math Solver</h1>
         <p className="hero__lede">
-          This build is intentionally narrowed to the math-only problem types shown in the
-          Chapter 15, 16, and 17 quiz materials. It keeps the solve path deterministic while
-          hiding the theory-only and out-of-scope workflows.
+          Enter the known values, choose what the question wants, and let the app infer the
+          formula path. It only asks for topology or branch context when the numbers alone do not
+          uniquely determine the solve.
         </p>
         <div className="hero__stats">
-          <span>Math questions only</span>
-          <span>Series, parallel, and mixed-network solves</span>
-          <span>Phasor and impedance conversions</span>
+          <span>Knowns in, answer out</span>
+          <span>Topology asked only when needed</span>
+          <span>Series, parallel, and mixed-network support</span>
           <span>No network needed at runtime</span>
         </div>
       </div>
@@ -91,9 +91,9 @@ export default function AppHeader({
           ))}
         </div>
         <p className="panel__note">
-          Theory prompts, true-false items, and the legacy extra workflows are intentionally
-          excluded here. This shell only exposes the math families needed by the quiz
-          materials.
+          Fast Solve stays first. Manual Override below still keeps the exact formula view,
+          diagram-driven builders, and mixed-network tools available when the direct solve needs a
+          nudge.
         </p>
       </aside>
     </header>

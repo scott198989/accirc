@@ -39,6 +39,7 @@ import {
 } from './features/guidedMathGoals'
 import AppHeader from './features/appShell/AppHeader'
 import AppModeSwitch from './features/appShell/AppModeSwitch'
+import FastSolveWorkspace from './features/appShell/FastSolveWorkspace'
 import FormulaWorkspace from './features/appShell/FormulaWorkspace'
 import GuidedWorkspace from './features/appShell/GuidedWorkspace'
 import ReferenceLibraryPanel from './features/appShell/ReferenceLibraryPanel'
@@ -64,6 +65,7 @@ import { useThemeMode } from './features/appShell/useThemeMode'
 function App() {
   const { themeMode, resolvedTheme, setThemeMode } = useThemeMode()
   const [mode, setMode] = useState<AppMode>('guided')
+  const [manualOverrideOpen, setManualOverrideOpen] = useState(false)
   const [guidedWorkflow, setGuidedWorkflow] = useState<GuidedWorkflow>('chapter-goal')
   const [guidedGoal, setGuidedGoal] = useState<GuidedSeriesGoal>('series-impedance')
   const [parallelGoal, setParallelGoal] = useState<GuidedParallelGoal>('parallel-admittance')
@@ -459,80 +461,107 @@ function App() {
         onThemeChange={setThemeMode}
       />
 
-      <ReferenceLibraryPanel />
-      <AppModeSwitch mode={mode} onModeChange={setMode} />
+      <FastSolveWorkspace />
 
-      {mode === 'guided' ? (
-        <GuidedWorkspace
-          frequencyRawValue={frequencyRawValue}
-          frequencyUnitId={frequencyUnitId}
-          guidedComponents={guidedComponents}
-          guidedGoal={guidedGoal}
-          guidedMathGoalId={guidedMathGoalId}
-          guidedMathResult={guidedMathResult}
-          guidedMathRows={guidedMathRows}
-          parallelGoal={parallelGoal}
-          parallelResult={parallelResult}
-          guidedResult={guidedResult}
-          guidedWorkflow={guidedWorkflow}
-          selectedMathGoal={selectedMathGoal}
-          seriesParallelGoal={seriesParallelGoal}
-          seriesParallelResult={seriesParallelResult}
-          seriesParallelRoot={seriesParallelRoot}
-          seriesParallelTargetNodeId={seriesParallelTargetNodeId}
-          sourceCurrentPhasorRawValue={sourceCurrentPhasorRawValue}
-          sourceCurrentPhasorUnitId={sourceCurrentPhasorUnitId}
-          sourceVoltageRawValue={sourceVoltageRawValue}
-          sourceVoltageUnitId={sourceVoltageUnitId}
-          onAddGuidedMathRow={addGuidedMathRow}
-          onAddGuidedComponent={addGuidedComponent}
-          onAddGuidedSymbolRow={addGuidedSymbolRow}
-          onAddSeriesParallelComponent={addSeriesParallelComponentTo}
-          onAddSeriesParallelGroup={addSeriesParallelGroupTo}
-          onFrequencyRawValueChange={setFrequencyRawValue}
-          onFrequencyUnitIdChange={setFrequencyUnitId}
-          onGuidedGoalChange={setGuidedGoal}
-          onGuidedMathGoalChange={changeGuidedMathGoal}
-          onGuidedWorkflowChange={setGuidedWorkflow}
-          onParallelGoalChange={setParallelGoal}
-          onRemoveGuidedMathRow={removeGuidedMathRow}
-          onRemoveGuidedComponent={removeGuidedComponent}
-          onRemoveGuidedSymbolRow={removeGuidedSymbolRow}
-          onRemoveSeriesParallelNode={removeSeriesParallelTreeNode}
-          onResetSeriesParallelBuilder={resetSeriesParallelBuilder}
-          onSeriesParallelGoalChange={setSeriesParallelGoal}
-          onSeriesParallelTargetNodeIdChange={setSeriesParallelTargetNodeId}
-          onSolveGuidedMath={solveGuidedMathMode}
-          onSolveGuidedMode={solveGuidedMode}
-          onSolveParallelMode={solveParallelMode}
-          onSolveSymbolMode={solveSymbolMode}
-          onSolveSeriesParallelMode={solveSeriesParallelMode}
-          onSourceCurrentPhasorRawValueChange={setSourceCurrentPhasorRawValue}
-          onSourceCurrentPhasorUnitIdChange={setSourceCurrentPhasorUnitId}
-          onSourceVoltageRawValueChange={setSourceVoltageRawValue}
-          onSourceVoltageUnitIdChange={setSourceVoltageUnitId}
-          onUpdateGuidedComponent={updateGuidedComponent}
-          onUpdateGuidedMathRow={updateGuidedMathRow}
-          onUpdateGuidedSymbolRow={updateGuidedSymbolRow}
-          onUpdateSeriesParallelNode={updateSeriesParallelNodeById}
-          onLoadSeriesParallelSample={loadSeriesParallelSample}
-          symbolResult={symbolResult}
-          symbolRows={symbolRows}
-          symbolTopology={symbolTopology}
-          onSymbolTopologyChange={setSymbolTopology}
-        />
-      ) : (
-        <FormulaWorkspace
-          formulaResult={formulaResult}
-          rows={rows}
-          target={target}
-          onAddFormulaRow={addFormulaRow}
-          onRemoveFormulaRow={removeFormulaRow}
-          onSolveFormula={solveFormulaMode}
-          onTargetChange={setTarget}
-          onUpdateFormulaRow={updateFormulaRow}
-        />
-      )}
+      <section className="manual-override-shell">
+        <div className="manual-override-shell__bar">
+          <div>
+            <p className="eyebrow">Advanced</p>
+            <h2>Manual Override</h2>
+            <p>
+              Only open this when Fast Solve needs explicit topology, a diagram builder, or an exact
+              formula path.
+            </p>
+          </div>
+          <button
+            className="ghost-button"
+            onClick={() => setManualOverrideOpen((current) => !current)}
+            type="button"
+          >
+            {manualOverrideOpen ? 'Hide Manual Override' : 'Open Manual Override'}
+          </button>
+        </div>
+
+        {manualOverrideOpen && (
+          <>
+            <AppModeSwitch mode={mode} onModeChange={setMode} />
+
+            {mode === 'guided' ? (
+              <GuidedWorkspace
+                frequencyRawValue={frequencyRawValue}
+                frequencyUnitId={frequencyUnitId}
+                guidedComponents={guidedComponents}
+                guidedGoal={guidedGoal}
+                guidedMathGoalId={guidedMathGoalId}
+                guidedMathResult={guidedMathResult}
+                guidedMathRows={guidedMathRows}
+                parallelGoal={parallelGoal}
+                parallelResult={parallelResult}
+                guidedResult={guidedResult}
+                guidedWorkflow={guidedWorkflow}
+                selectedMathGoal={selectedMathGoal}
+                seriesParallelGoal={seriesParallelGoal}
+                seriesParallelResult={seriesParallelResult}
+                seriesParallelRoot={seriesParallelRoot}
+                seriesParallelTargetNodeId={seriesParallelTargetNodeId}
+                sourceCurrentPhasorRawValue={sourceCurrentPhasorRawValue}
+                sourceCurrentPhasorUnitId={sourceCurrentPhasorUnitId}
+                sourceVoltageRawValue={sourceVoltageRawValue}
+                sourceVoltageUnitId={sourceVoltageUnitId}
+                onAddGuidedMathRow={addGuidedMathRow}
+                onAddGuidedComponent={addGuidedComponent}
+                onAddGuidedSymbolRow={addGuidedSymbolRow}
+                onAddSeriesParallelComponent={addSeriesParallelComponentTo}
+                onAddSeriesParallelGroup={addSeriesParallelGroupTo}
+                onFrequencyRawValueChange={setFrequencyRawValue}
+                onFrequencyUnitIdChange={setFrequencyUnitId}
+                onGuidedGoalChange={setGuidedGoal}
+                onGuidedMathGoalChange={changeGuidedMathGoal}
+                onGuidedWorkflowChange={setGuidedWorkflow}
+                onParallelGoalChange={setParallelGoal}
+                onRemoveGuidedMathRow={removeGuidedMathRow}
+                onRemoveGuidedComponent={removeGuidedComponent}
+                onRemoveGuidedSymbolRow={removeGuidedSymbolRow}
+                onRemoveSeriesParallelNode={removeSeriesParallelTreeNode}
+                onResetSeriesParallelBuilder={resetSeriesParallelBuilder}
+                onSeriesParallelGoalChange={setSeriesParallelGoal}
+                onSeriesParallelTargetNodeIdChange={setSeriesParallelTargetNodeId}
+                onSolveGuidedMath={solveGuidedMathMode}
+                onSolveGuidedMode={solveGuidedMode}
+                onSolveParallelMode={solveParallelMode}
+                onSolveSymbolMode={solveSymbolMode}
+                onSolveSeriesParallelMode={solveSeriesParallelMode}
+                onSourceCurrentPhasorRawValueChange={setSourceCurrentPhasorRawValue}
+                onSourceCurrentPhasorUnitIdChange={setSourceCurrentPhasorUnitId}
+                onSourceVoltageRawValueChange={setSourceVoltageRawValue}
+                onSourceVoltageUnitIdChange={setSourceVoltageUnitId}
+                onUpdateGuidedComponent={updateGuidedComponent}
+                onUpdateGuidedMathRow={updateGuidedMathRow}
+                onUpdateGuidedSymbolRow={updateGuidedSymbolRow}
+                onUpdateSeriesParallelNode={updateSeriesParallelNodeById}
+                onLoadSeriesParallelSample={loadSeriesParallelSample}
+                symbolResult={symbolResult}
+                symbolRows={symbolRows}
+                symbolTopology={symbolTopology}
+                onSymbolTopologyChange={setSymbolTopology}
+              />
+            ) : (
+              <FormulaWorkspace
+                formulaResult={formulaResult}
+                rows={rows}
+                target={target}
+                onAddFormulaRow={addFormulaRow}
+                onRemoveFormulaRow={removeFormulaRow}
+                onSolveFormula={solveFormulaMode}
+                onTargetChange={setTarget}
+                onUpdateFormulaRow={updateFormulaRow}
+              />
+            )}
+          </>
+        )}
+      </section>
+
+      <ReferenceLibraryPanel />
     </div>
   )
 }

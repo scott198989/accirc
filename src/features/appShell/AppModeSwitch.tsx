@@ -7,14 +7,14 @@ interface AppModeSwitchProps {
 
 export default function AppModeSwitch({ mode, onModeChange }: AppModeSwitchProps) {
   return (
-    <div className="mode-switch" role="tablist" aria-label="App mode">
+    <div className="mode-switch" role="tablist" aria-label="Manual override mode">
       <button
         className={mode === 'guided' ? 'mode-switch__button is-active' : 'mode-switch__button'}
         onClick={() => onModeChange('guided')}
         role="tab"
         type="button"
       >
-        Guided mode
+        Builder tools
       </button>
       <button
         className={mode === 'formula' ? 'mode-switch__button is-active' : 'mode-switch__button'}
@@ -22,7 +22,7 @@ export default function AppModeSwitch({ mode, onModeChange }: AppModeSwitchProps
         role="tab"
         type="button"
       >
-        Formula mode
+        Exact formula path
       </button>
     </div>
   )
