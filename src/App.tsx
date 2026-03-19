@@ -38,6 +38,7 @@ import {
   type GuidedMathResult,
 } from './features/guidedMathGoals'
 import AppHeader from './features/appShell/AppHeader'
+import AppModeSwitch from './features/appShell/AppModeSwitch'
 import FormulaWorkspace from './features/appShell/FormulaWorkspace'
 import GuidedWorkspace from './features/appShell/GuidedWorkspace'
 import ReferenceLibraryPanel from './features/appShell/ReferenceLibraryPanel'
@@ -451,16 +452,15 @@ function App() {
   return (
     <div className="shell">
       <AppHeader
-        mode={mode}
         resolvedTheme={resolvedTheme}
         themeMode={themeMode}
         onLoadGuidedSample={loadGuidedSample}
         onLoadSeriesParallelSample={loadSeriesParallelSample}
-        onModeChange={setMode}
         onThemeChange={setThemeMode}
       />
 
       <ReferenceLibraryPanel />
+      <AppModeSwitch mode={mode} onModeChange={setMode} />
 
       {mode === 'guided' ? (
         <GuidedWorkspace
