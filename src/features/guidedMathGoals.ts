@@ -295,6 +295,15 @@ export const guidedMathGoals: GuidedMathGoalDefinition[] = [
     inputs: ['inductiveReactance', 'frequency'],
   },
   {
+    id: 'capacitance-from-reactance-and-frequency',
+    chapter: '15',
+    section: 'Basic elements and phasors',
+    label: 'Find capacitance from reactance and frequency',
+    description: 'Use this when the problem gives XC and f and asks for C.',
+    target: 'capacitance',
+    inputs: ['capacitiveReactance', 'frequency'],
+  },
+  {
     id: 'power-factor-from-phase-angle',
     chapter: '14',
     section: 'Average power and power factor',
@@ -470,6 +479,17 @@ export const guidedMathGoals: GuidedMathGoalDefinition[] = [
     formulaSummary: ['Z = E / I'],
     target: 'impedanceComplex',
     inputs: ['phasorSourceVoltage', 'phasorCurrent'],
+  },
+  {
+    id: 'branch-voltage-from-source-and-impedances',
+    chapter: '15',
+    section: 'Phasor relationships',
+    label: 'Find a branch voltage with the AC voltage-divider rule',
+    description: 'Use this when the problem gives the source phasor, the branch impedance, and the total impedance and asks for a branch voltage in phasor form.',
+    formulaSummary: ['Vx = E (Zx / Zt)'],
+    target: 'branchVoltagePhasor',
+    inputs: ['phasorSourceVoltage', 'branchImpedance', 'totalImpedance'],
+    note: 'The answer panel shows both rectangular and polar form for the branch voltage phasor.',
   },
   {
     id: 'equivalent-parallel-resistance-from-series-r-xl',

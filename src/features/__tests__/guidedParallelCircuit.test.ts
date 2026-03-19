@@ -164,4 +164,49 @@ describe('solveGuidedParallelCircuit', () => {
     expect(result.reference.sourceCurrent.result.value.value).toBeCloseTo(4.27200187, 6)
     expect(result.output.result.value.value).toBeCloseTo(80, 6)
   })
+
+  it('accepts a source current phasor for current-divider style solves', () => {
+    const result = solveGuidedParallelCircuit({
+      goal: 'parallel-inductor-current',
+      frequencyRawValue: '',
+      frequencyUnitId: 'hz',
+      sourceVoltageRawValue: '',
+      sourceVoltageUnitId: 'v',
+      sourceCurrentPhasorRawValue: '1@80deg',
+      sourceCurrentPhasorUnitId: 'a',
+      components: [
+        {
+          id: 'r1',
+          kind: 'resistor',
+          valueMode: 'resistance',
+          rawValue: '5',
+          unitId: 'ohm',
+        },
+        {
+          id: 'l1',
+          kind: 'inductor',
+          valueMode: 'reactance',
+          rawValue: '8',
+          unitId: 'ohm',
+        },
+      ],
+    })
+
+    expect(result.status).toBe('solved')
+    if (
+      result.status !== 'solved' ||
+      !result.reference.sourceVoltagePhasor ||
+      result.reference.sourceVoltagePhasor.result.status !== 'solved' ||
+      result.reference.sourceVoltagePhasor.result.value.kind !== 'complex' ||
+      result.output.result.status !== 'solved' ||
+      result.output.result.value.kind !== 'scalar'
+    ) {
+      return
+    }
+
+    expect(result.reference.sourceVoltagePhasor.result.value.real).toBeCloseTo(-1.58869813, 6)
+    expect(result.reference.sourceVoltagePhasor.result.value.imag).toBeCloseTo(3.93110243, 6)
+    expect(result.output.result.value.value).toBeCloseTo(0.52999894, 6)
+    expect(result.reference.inductorCurrent?.secondaryText).toMatch(/Current phasor:/i)
+  })
 })

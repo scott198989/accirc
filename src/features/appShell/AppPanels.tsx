@@ -6,6 +6,7 @@ import {
   type SolveResult,
 } from '../../core'
 import type { GuidedMathGoalDefinition, GuidedMathResult } from '../guidedMathGoals'
+import type { GuidedParallelCircuitResult } from '../guidedParallelCircuit'
 import type {
   GuidedWaveformExpressionDetail,
   GuidedWaveformExpressionResult,
@@ -23,6 +24,7 @@ import type {
   GuidedSeriesParallelResult,
   GuidedSeriesParallelTopology,
 } from '../guidedSeriesParallelNetwork'
+import type { GuidedSymbolProblemResult } from '../guidedSymbolProblem'
 import {
   defaultSeriesParallelComponentLabel,
   defaultSeriesParallelGroupLabel,
@@ -37,16 +39,20 @@ import {
 
 export function GuidedResultsPanel({
   guidedMathResult,
+  parallelResult,
   guidedResult,
   guidedWorkflow,
   selectedMathGoal,
   seriesParallelResult,
+  symbolResult,
 }: {
   guidedMathResult: GuidedMathResult | null
+  parallelResult: GuidedParallelCircuitResult | null
   guidedResult: GuidedSeriesImpedanceResult | null
   guidedWorkflow: GuidedWorkflow
   selectedMathGoal: GuidedMathGoalDefinition
   seriesParallelResult: GuidedSeriesParallelResult | null
+  symbolResult: GuidedSymbolProblemResult | null
 }) {
   return (
     <section className="card results">
@@ -65,11 +71,18 @@ export function GuidedResultsPanel({
 
       {guidedWorkflow === 'chapter-goal' ? (
         <GuidedMathResultPanel goal={selectedMathGoal} result={guidedMathResult} />
+      ) : guidedWorkflow === 'parallel-builder' ? (
+        <GuidedParallelResultPanel
+          emptyMessage="Enter the Chapter 16 branch values, add source voltage or source current if the ask needs it, and run the solve."
+          result={parallelResult}
+        />
       ) : guidedWorkflow === 'series-parallel-builder' ? (
         <GuidedSeriesParallelResultPanel
           emptyMessage="Build the mixed network, enter frequency or source voltage when needed, and run the solve."
           result={seriesParallelResult}
         />
+      ) : guidedWorkflow === 'symbol-builder' ? (
+        <GuidedSymbolResultPanel result={symbolResult} />
       ) : (
         <GuidedSeriesResultPanel
           emptyMessage="Select a goal, enter the components you see, and run the guided solve."
@@ -463,6 +476,126 @@ function GuidedSeriesResultPanel({
   )
 }
 
+function GuidedParallelResultPanel({
+  result,
+  emptyMessage,
+}: {
+  result: GuidedParallelCircuitResult | null
+  emptyMessage: string
+}) {
+  if (!result) {
+    return (
+      <div className="empty-state">
+        <p>{emptyMessage}</p>
+      </div>
+    )
+  }
+
+  if (result.status === 'invalid') {
+    return <ResultBanner tone="warning" title="Need a clearer parallel input" body={result.message} />
+  }
+
+  if (result.output.result.status !== 'solved') {
+    return null
+  }
+
+  return (
+    <>
+      <div className="answer-panel">
+        <p className="detail-card__eyebrow">{result.output.label}</p>
+        <h3>{formatQuantitySmart(result.output.quantityId, result.output.result.value)}</h3>
+        {result.output.secondaryText && <p>{result.output.secondaryText}</p>}
+      </div>
+
+      <div className="detail-grid">
+        <article className="detail-card">
+          <p className="detail-card__eyebrow">Totals the app built</p>
+          <p>G total = {formatQuantityInBaseUnit('conductance', toScalar(result.totals.conductance))}</p>
+          <p>
+            BL total ={' '}
+            {formatQuantityInBaseUnit(
+              'inductiveSusceptance',
+              toScalar(result.totals.inductiveSusceptance),
+            )}
+          </p>
+          <p>
+            BC total ={' '}
+            {formatQuantityInBaseUnit(
+              'capacitiveSusceptance',
+              toScalar(result.totals.capacitiveSusceptance),
+            )}
+          </p>
+          <p>
+            B net = {formatQuantityInBaseUnit('netSusceptance', toScalar(result.totals.netSusceptance))}
+          </p>
+        </article>
+
+        <article className="detail-card">
+          <p className="detail-card__eyebrow">Parallel-circuit notes</p>
+          <p>
+            The builder adds branch admittances directly, then inverts the result to show the
+            equivalent series impedance.
+          </p>
+          <p>
+            Entering a source voltage or source current phasor unlocks the source and branch-current
+            phasors used in the Chapter 16 homework problems.
+          </p>
+        </article>
+      </div>
+
+      <div className="detail-grid detail-grid--reference">
+        <ComputedValueCard value={result.reference.admittanceRectangular} />
+        <ComputedValueCard value={result.reference.admittanceMagnitude} />
+        <ComputedValueCard value={result.reference.admittanceAngle} />
+        <ComputedValueCard value={result.reference.impedanceRectangular} />
+        <ComputedValueCard value={result.reference.impedanceMagnitude} />
+        <ComputedValueCard value={result.reference.powerFactor} />
+        {result.reference.sourceVoltagePhasor && <ComputedValueCard value={result.reference.sourceVoltagePhasor} />}
+        {result.reference.sourceCurrent && <ComputedValueCard value={result.reference.sourceCurrent} />}
+        {result.reference.resistorCurrent && <ComputedValueCard value={result.reference.resistorCurrent} />}
+        {result.reference.inductorCurrent && <ComputedValueCard value={result.reference.inductorCurrent} />}
+        {result.reference.capacitorCurrent && <ComputedValueCard value={result.reference.capacitorCurrent} />}
+        {result.reference.realPower && <ComputedValueCard value={result.reference.realPower} />}
+      </div>
+
+      <FormulaTrace result={result.output.result} />
+
+      <div className="list-stack">
+        {result.contributions.map((contribution) => (
+          <article className="detail-card" key={contribution.id}>
+            <p className="detail-card__eyebrow">{contribution.label}</p>
+            <h3>{contribution.entered}</h3>
+            <p>{contribution.contributesAs}</p>
+            {contribution.formulaUsed && <p>Formula used: {contribution.formulaUsed}</p>}
+          </article>
+        ))}
+      </div>
+    </>
+  )
+}
+
+function GuidedSymbolResultPanel({ result }: { result: GuidedSymbolProblemResult | null }) {
+  if (!result) {
+    return (
+      <div className="empty-state">
+        <p>Pick the textbook labels from the screenshot, enter the knowns, and solve.</p>
+      </div>
+    )
+  }
+
+  return result.topology === 'series' ? (
+    <GuidedSeriesResultPanel
+      emptyMessage="Enter the textbook labels you see, then solve."
+      result={result.result}
+    />
+  ) : (
+    <GuidedParallelResultPanel
+      emptyMessage="Enter the textbook labels you see, then solve."
+      result={result.result}
+    />
+  )
+}
+
 function GuidedMathResultPanel({
   goal,
   result,
@@ -722,7 +855,7 @@ function GuidedSeriesParallelResultPanel({
 }
 
 function FormulaTrace({ result }: { result: SolveResult }) {
-  if (result.status !== 'solved') {
+  if (result.status !== 'solved' || result.steps.length === 0) {
     return null
   }
 

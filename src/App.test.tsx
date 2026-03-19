@@ -22,13 +22,10 @@ describe('App', () => {
     expect(
       screen.getByRole('tab', { name: /Mixed series-parallel network/i }),
     ).toBeInTheDocument()
-    expect(screen.queryByRole('tab', { name: /Textbook labels/i })).not.toBeInTheDocument()
     expect(
-      screen.queryByRole('tab', { name: /Parallel circuit from diagram/i }),
-    ).not.toBeInTheDocument()
-
-    const questionGoalSelect = screen.getAllByLabelText(/Question goal/i)[0]
-    expect(questionGoalSelect.innerHTML).not.toMatch(/Chapter 10|Chapter 11|Chapter 13|Chapter 14|Chapter 17/i)
+      screen.getByRole('tab', { name: /Parallel circuit from diagram/i }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: /Textbook labels/i })).toBeInTheDocument()
   }, 15000)
 
   it('shows the quiz figure quick loads', () => {
@@ -79,13 +76,16 @@ describe('App', () => {
     const optionLabels = Array.from(select.options).map((option) => option.textContent ?? '')
 
     expect(optionLabels).toContain('Find inductive reactance from frequency and inductance')
+    expect(optionLabels).toContain('Find capacitance from reactance and frequency')
     expect(optionLabels).toContain('Find total series RL impedance from resistance and XL')
     expect(optionLabels).toContain('Find total series impedance from resistance, XL, and XC')
     expect(optionLabels).toContain('Find rectangular impedance from power, voltage, and power factor')
+    expect(optionLabels).toContain('Write a current phasor as a sinusoidal current expression')
+    expect(optionLabels).toContain('Find a branch voltage with the AC voltage-divider rule')
+    expect(optionLabels).toContain('Find total admittance from conductance and susceptances')
     expect(optionLabels).toContain('Find total impedance of a resistor in parallel with a coil')
     expect(optionLabels).toContain('Find capacitive susceptance from frequency and capacitance')
     expect(optionLabels).not.toContain('Find total capacitance of capacitors in parallel')
-    expect(optionLabels).not.toContain('Write a current phasor as a sinusoidal current expression')
   })
 
   it('shows the formula path for the selected quiz goal', () => {
@@ -118,6 +118,28 @@ describe('App', () => {
     expect(screen.getByText(/Known frequency if needed/i)).toBeInTheDocument()
     expect(screen.getByText(/Known source voltage if needed/i)).toBeInTheDocument()
   }, 15000)
+
+  it('shows the Chapter 16 parallel builder and source-current phasor input', () => {
+    render(<App />)
+
+    const workflowTabs = within(screen.getAllByRole('tablist', { name: /Guided workflow/i })[0])
+    fireEvent.click(workflowTabs.getByRole('tab', { name: /Parallel circuit from diagram/i }))
+
+    expect(screen.getByRole('button', { name: /Add component known/i })).toBeInTheDocument()
+    expect(screen.getByText(/Known source current phasor if needed/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Solve parallel circuit/i })).toBeInTheDocument()
+  })
+
+  it('shows the textbook-label workflow', () => {
+    render(<App />)
+
+    const workflowTabs = within(screen.getAllByRole('tablist', { name: /Guided workflow/i })[0])
+    fireEvent.click(workflowTabs.getByRole('tab', { name: /Textbook labels/i }))
+
+    expect(screen.getByText(/Problem topology/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Add symbol known/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Solve textbook labels/i })).toBeInTheDocument()
+  })
 
   it('exposes the extra mixed-network goals already supported by the solver', () => {
     render(<App />)

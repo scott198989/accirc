@@ -1,5 +1,6 @@
 import { quantityDefinitions, quantityMap, type QuantityId, type SolverInputRow } from '../../core'
 import { guidedMathGoals as allGuidedMathGoals } from '../guidedMathGoals'
+import type { GuidedParallelGoal } from '../guidedParallelCircuit'
 import {
   updateSeriesParallelNode,
   makeSeriesParallelGroup,
@@ -16,7 +17,12 @@ import type {
 
 export type AppMode = 'guided' | 'formula'
 
-export type GuidedWorkflow = 'chapter-goal' | 'series-builder' | 'series-parallel-builder'
+export type GuidedWorkflow =
+  | 'chapter-goal'
+  | 'series-builder'
+  | 'parallel-builder'
+  | 'series-parallel-builder'
+  | 'symbol-builder'
 
 export type GuidedSeriesParallelNodeUpdates = Parameters<typeof updateSeriesParallelNode>[2]
 export type ThemeMode = 'light' | 'dark' | 'system'
@@ -38,6 +44,12 @@ export interface GuidedGoalOption {
 
 export interface SeriesParallelGoalOption {
   value: GuidedSeriesParallelGoal
+  label: string
+  description: string
+}
+
+export interface ParallelGoalOption {
+  value: GuidedParallelGoal
   label: string
   description: string
 }
@@ -71,6 +83,8 @@ export interface SeriesParallelSample {
 const quizMathGoalIds = new Set([
   'inductive-reactance-from-frequency-and-inductance',
   'capacitive-reactance-from-frequency-and-capacitance',
+  'inductance-from-reactance-and-frequency',
+  'capacitance-from-reactance-and-frequency',
   'power-factor-from-phase-angle',
   'series-impedance-from-r-and-xl',
   'series-impedance-from-r-and-xc',
@@ -81,11 +95,23 @@ const quizMathGoalIds = new Set([
   'inductor-impedance-from-frequency-and-inductance',
   'capacitor-impedance-from-frequency-and-capacitance',
   'voltage-phasor-from-magnitude-and-angle',
+  'current-phasor-from-sine-expression',
+  'voltage-phasor-from-sine-expression',
+  'current-sine-expression-from-phasor',
+  'voltage-sine-expression-from-phasor',
   'impedance-from-power-voltage-and-power-factor',
   'impedance-from-source-voltage-and-current-phasors',
+  'branch-voltage-from-source-and-impedances',
   'equivalent-parallel-resistance-from-series-r-xl',
   'equivalent-parallel-reactance-from-series-r-xl',
   'parallel-impedance-from-resistor-and-coil',
+  'conductance-from-resistance',
+  'inductive-susceptance-from-reactance',
+  'capacitive-susceptance-from-reactance',
+  'parallel-admittance-from-g-bl-bc',
+  'parallel-source-current-from-voltage-and-admittance',
+  'parallel-power-from-voltage-and-conductance',
+  'parallel-power-factor-from-g-and-y',
   'capacitive-susceptance-from-frequency-and-capacitance',
 ])
 
@@ -96,22 +122,32 @@ const quizMathQuantityIds = new Set<QuantityId>([
   'resistance',
   'coilResistance',
   'parallelResistance',
+  'conductance',
   'inductance',
   'capacitance',
   'inductiveReactance',
   'capacitiveReactance',
+  'inductiveSusceptance',
   'capacitiveSusceptance',
+  'admittanceMagnitude',
+  'admittanceComplex',
+  'admittanceAngle',
   'netReactance',
   'impedanceMagnitude',
   'powerFactor',
   'realPower',
   'phaseAngle',
+  'waveformPhaseAngle',
+  'angularFrequency',
   'polarAngle',
   'phasorCurrent',
   'phasorSourceVoltage',
   'inductiveImpedance',
   'capacitiveImpedance',
   'impedanceComplex',
+  'branchVoltagePhasor',
+  'branchImpedance',
+  'totalImpedance',
   'equivalentParallelResistance',
   'equivalentParallelInductiveReactance',
 ])
@@ -128,18 +164,35 @@ const guidedMathGoalById = Object.fromEntries(guidedMathGoals.map((goal) => [goa
 const scopedGoalGroups = [
   {
     key: 'reactance-and-basics',
-    label: 'Reactance and phasor basics',
+    label: 'Element conversions and basics',
     goalIds: [
       'inductive-reactance-from-frequency-and-inductance',
       'capacitive-reactance-from-frequency-and-capacitance',
+      'inductance-from-reactance-and-frequency',
+      'capacitance-from-reactance-and-frequency',
       'inductor-impedance-from-frequency-and-inductance',
       'capacitor-impedance-from-frequency-and-capacitance',
+      'conductance-from-resistance',
+      'inductive-susceptance-from-reactance',
+      'capacitive-susceptance-from-reactance',
+      'capacitive-susceptance-from-frequency-and-capacitance',
+    ],
+  },
+  {
+    key: 'phasors-and-waveforms',
+    label: 'Phasor and waveform translation',
+    goalIds: [
       'voltage-phasor-from-magnitude-and-angle',
+      'current-phasor-from-sine-expression',
+      'voltage-phasor-from-sine-expression',
+      'current-sine-expression-from-phasor',
+      'voltage-sine-expression-from-phasor',
+      'branch-voltage-from-source-and-impedances',
     ],
   },
   {
     key: 'series-ac-direct',
-    label: 'Direct series impedance questions',
+    label: 'Series AC impedance questions',
     goalIds: [
       'series-impedance-from-r-and-xl',
       'series-impedance-from-r-and-xc',
@@ -159,18 +212,23 @@ const scopedGoalGroups = [
     ],
   },
   {
+    key: 'parallel-ac',
+    label: 'Parallel AC and admittance',
+    goalIds: [
+      'parallel-impedance-from-resistor-and-coil',
+      'parallel-admittance-from-g-bl-bc',
+      'parallel-source-current-from-voltage-and-admittance',
+      'parallel-power-from-voltage-and-conductance',
+      'parallel-power-factor-from-g-and-y',
+    ],
+  },
+  {
     key: 'equivalent-networks',
     label: 'Equivalent networks',
     goalIds: [
       'equivalent-parallel-resistance-from-series-r-xl',
       'equivalent-parallel-reactance-from-series-r-xl',
-      'parallel-impedance-from-resistor-and-coil',
     ],
-  },
-  {
-    key: 'parallel-ac',
-    label: 'Parallel AC and admittance',
-    goalIds: ['capacitive-susceptance-from-frequency-and-capacitance'],
   },
 ]
 
@@ -189,7 +247,9 @@ export const THEME_STORAGE_KEY = 'accirc-theme-mode'
 export const guidedWorkflowOptions: GuidedWorkflowOption[] = [
   { value: 'chapter-goal', label: 'Quiz math goal' },
   { value: 'series-builder', label: 'Series circuit from diagram' },
+  { value: 'parallel-builder', label: 'Parallel circuit from diagram' },
   { value: 'series-parallel-builder', label: 'Mixed series-parallel network' },
+  { value: 'symbol-builder', label: 'Textbook labels' },
 ]
 
 export const guidedGoalOptions: GuidedGoalOption[] = [
@@ -250,6 +310,54 @@ export const seriesParallelGoalOptions: SeriesParallelGoalOption[] = [
     value: 'series-parallel-real-power',
     label: 'Real power of a mixed series-parallel network',
     description: 'Uses the reduced network, source current, and phase angle to find real power.',
+  },
+]
+
+export const parallelGoalOptions: ParallelGoalOption[] = [
+  {
+    value: 'parallel-admittance',
+    label: 'Total admittance of a parallel circuit',
+    description: 'Best for Chapter 16 asks that want Y in rectangular and polar form from the diagram.',
+  },
+  {
+    value: 'parallel-admittance-angle',
+    label: 'Admittance angle of a parallel circuit',
+    description: 'Shows the angle of the total admittance and whether the network is leading or lagging.',
+  },
+  {
+    value: 'parallel-impedance',
+    label: 'Equivalent series impedance of a parallel circuit',
+    description: 'Useful when the homework asks for the total impedance or an equivalent series circuit.',
+  },
+  {
+    value: 'parallel-source-current',
+    label: 'Source current of a parallel circuit',
+    description: 'Shows the source-current magnitude and phasor from either source voltage or source current input.',
+  },
+  {
+    value: 'parallel-power-factor',
+    label: 'Power factor of a parallel circuit',
+    description: 'Finds the overall power factor from the reduced admittance.',
+  },
+  {
+    value: 'parallel-real-power',
+    label: 'Real power of a parallel circuit',
+    description: 'Uses the reduced conductance and excitation to find average power.',
+  },
+  {
+    value: 'parallel-resistor-current',
+    label: 'Current through the resistive branch total',
+    description: 'Shows the resistive-branch current magnitude and phasor.',
+  },
+  {
+    value: 'parallel-inductor-current',
+    label: 'Current through the inductive branch total',
+    description: 'Shows the inductive-branch current magnitude and phasor.',
+  },
+  {
+    value: 'parallel-capacitor-current',
+    label: 'Current through the capacitive branch total',
+    description: 'Shows the capacitive-branch current magnitude and phasor.',
   },
 ]
 

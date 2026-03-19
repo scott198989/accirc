@@ -1,9 +1,9 @@
-import { complex, scalar } from '../core/complex'
+import { complex, divideComplex, magnitude, multiplyComplex, scalar } from '../core/complex'
 import { formatQuantityInBaseUnit, formatQuantitySmart } from '../core/format'
 import { quantityMap } from '../core/quantities'
 import { solveWithRules } from '../core/ruleEngine'
 import { solveCircuitProblem } from '../core/solver'
-import type { SolveResult } from '../core/types'
+import type { QuantityId, QuantityValue, SolveResult } from '../core/types'
 import { parseAndNormalizeValue } from '../core/units'
 import type {
   GuidedComponentInput,
@@ -30,6 +30,8 @@ export interface GuidedParallelCircuitInput {
   frequencyUnitId: string
   sourceVoltageRawValue?: string
   sourceVoltageUnitId?: string
+  sourceCurrentPhasorRawValue?: string
+  sourceCurrentPhasorUnitId?: string
   components: GuidedComponentInput[]
 }
 
@@ -51,6 +53,7 @@ export interface GuidedParallelCircuitSolved {
     impedanceRectangular: GuidedComputedValue
     impedanceMagnitude: GuidedComputedValue
     powerFactor: GuidedComputedValue
+    sourceVoltagePhasor?: GuidedComputedValue
     sourceCurrent?: GuidedComputedValue
     resistorCurrent?: GuidedComputedValue
     inductorCurrent?: GuidedComputedValue
@@ -105,11 +108,22 @@ export function solveGuidedParallelCircuit(
     }
   }
 
-  if (goalNeedsSourceVoltage(goal) && !sourceVoltage.value) {
+  const sourceCurrentPhasor = parseSourceCurrentPhasor(
+    input.sourceCurrentPhasorRawValue ?? '',
+    input.sourceCurrentPhasorUnitId ?? 'a',
+  )
+  if (sourceCurrentPhasor.error) {
+    return {
+      status: 'invalid',
+      message: sourceCurrentPhasor.error,
+    }
+  }
+
+  if (goalNeedsSourceExcitation(goal) && !sourceVoltage.value && !sourceCurrentPhasor.value) {
     return {
       status: 'invalid',
       message:
-        'This guided goal needs the source voltage. Enter the supply voltage magnitude and unit before solving.',
+        'This guided goal needs either the source voltage magnitude or the source current phasor before solving.',
     }
   }
 
@@ -249,98 +263,78 @@ export function solveGuidedParallelCircuit(
     ),
   } as GuidedParallelCircuitSolved['reference']
 
-  if (sourceVoltage.value) {
-    const sourceCurrent = solveWithRules({
-      target: 'current',
-      knowns: {
-        voltage: sourceVoltage.value,
-        admittanceMagnitude: admittanceMagnitude.value,
-      },
-    })
-    const sourceCurrentPhasor = solveWithRules({
-      target: 'phasorCurrent',
-      knowns: {
-        phasorSourceVoltage: complex(sourceVoltage.value.value, 0),
-        admittanceComplex: admittanceRectangular.value,
-      },
-    })
-    const resistorCurrent = solveWithRules({
-      target: 'current',
-      knowns: {
-        voltage: sourceVoltage.value,
-        conductance: scalar(totalConductance),
-      },
-    })
-    const inductorCurrent = solveWithRules({
-      target: 'current',
-      knowns: {
-        voltage: sourceVoltage.value,
-        inductiveSusceptance: scalar(totalInductiveSusceptance),
-      },
-    })
-    const capacitorCurrent = solveWithRules({
-      target: 'current',
-      knowns: {
-        voltage: sourceVoltage.value,
-        capacitiveSusceptance: scalar(totalCapacitiveSusceptance),
-      },
-    })
-    const realPower = solveWithRules({
-      target: 'realPower',
-      knowns: {
-        voltage: sourceVoltage.value,
-        conductance: scalar(totalConductance),
-      },
-    })
+  const excitation = resolveSourceExcitation({
+    admittance: admittanceRectangular.value,
+    admittanceMagnitude: admittanceMagnitude.value,
+    conductance: totalConductance,
+    capacitiveSusceptance: totalCapacitiveSusceptance,
+    inductiveSusceptance: totalInductiveSusceptance,
+    sourceVoltage: sourceVoltage.value,
+    sourceCurrentPhasor: sourceCurrentPhasor.value,
+  })
 
-    if (
-      sourceCurrent.status !== 'solved' ||
-      sourceCurrentPhasor.status !== 'solved' ||
-      resistorCurrent.status !== 'solved' ||
-      inductorCurrent.status !== 'solved' ||
-      capacitorCurrent.status !== 'solved' ||
-      realPower.status !== 'solved'
-    ) {
-      return {
-        status: 'invalid',
-        message:
-          'The source voltage was valid, but one of the parallel output quantities could not be determined.',
-      }
+  if (excitation.error) {
+    return {
+      status: 'invalid',
+      message: excitation.error,
     }
+  }
 
+  if (excitation.value) {
+    const {
+      sourceVoltagePhasor,
+      sourceVoltageMagnitude,
+      sourceCurrentMagnitudeResult,
+      sourceCurrentPhasorResult,
+      resistorCurrentMagnitudeResult,
+      resistorCurrentPhasor,
+      inductorCurrentMagnitudeResult,
+      inductorCurrentPhasor,
+      capacitorCurrentMagnitudeResult,
+      capacitorCurrentPhasor,
+      realPowerResult,
+    } = excitation.value
+
+    reference.sourceVoltagePhasor = makeComputedValue(
+      'source-voltage-phasor',
+      'Source voltage phasor',
+      'phasorSourceVoltage',
+      sourceVoltagePhasor,
+      `Magnitude: ${formatQuantitySmart('voltage', sourceVoltageMagnitude)}`,
+    )
     reference.sourceCurrent = makeComputedValue(
       'source-current',
       'Source current',
       'current',
-      sourceCurrent,
-      `Current phasor: ${formatQuantitySmart('phasorCurrent', sourceCurrentPhasor.value)}`,
+      sourceCurrentMagnitudeResult,
+      `Current phasor: ${formatQuantitySmart('phasorCurrent', sourceCurrentPhasorResult.value)}`,
     )
     reference.resistorCurrent = makeComputedValue(
       'resistor-current',
       'Current through the total resistive branch',
       'current',
-      resistorCurrent,
-      `Computed from the total conductance of all resistive branches.`,
+      resistorCurrentMagnitudeResult,
+      `Current phasor: ${formatQuantitySmart('phasorCurrent', resistorCurrentPhasor)}`,
     )
     reference.inductorCurrent = makeComputedValue(
       'inductor-current',
       'Current through the total inductive branch',
       'current',
-      inductorCurrent,
-      `Computed from the total inductive susceptance of all inductive branches.`,
+      inductorCurrentMagnitudeResult,
+      `Current phasor: ${formatQuantitySmart('phasorCurrent', inductorCurrentPhasor)}`,
     )
     reference.capacitorCurrent = makeComputedValue(
       'capacitor-current',
       'Current through the total capacitive branch',
       'current',
-      capacitorCurrent,
-      `Computed from the total capacitive susceptance of all capacitive branches.`,
+      capacitorCurrentMagnitudeResult,
+      `Current phasor: ${formatQuantitySmart('phasorCurrent', capacitorCurrentPhasor)}`,
     )
     reference.realPower = makeComputedValue(
       'real-power',
       'Real power delivered',
       'realPower',
-      realPower,
+      realPowerResult,
       `Computed from source voltage and total conductance.`,
     )
   }
@@ -350,7 +344,7 @@ export function solveGuidedParallelCircuit(
     return {
       status: 'invalid',
       message:
-        'The selected guided goal needs source-dependent results, but they were not available. Enter a source voltage and try again.',
+        'The selected guided goal needs source-dependent results, but they were not available. Enter the source voltage or source current phasor and try again.',
     }
   }
 
@@ -424,6 +418,25 @@ function parseSourceVoltage(rawValue: string, unitId: string) {
     return {
       value: undefined,
       error: parsed.error ?? 'Enter a valid source voltage value.',
+    }
+  }
+
+  return { value: parsed.value, error: undefined }
+}
+
+function parseSourceCurrentPhasor(rawValue: string, unitId: string) {
+  if (rawValue.trim().length === 0) {
+    return {
+      value: undefined as ReturnType<typeof complex> | undefined,
+      error: undefined as string | undefined,
+    }
+  }
+
+  const parsed = parseAndNormalizeValue(quantityMap.phasorCurrent, rawValue, unitId)
+  if (!parsed.value || parsed.error || parsed.value.kind !== 'complex') {
+    return {
+      value: undefined,
+      error: parsed.error ?? 'Enter a valid source current phasor.',
     }
   }
 
@@ -612,7 +625,7 @@ function processComponent(
   return invalidFor(label, 'This component type is not supported in guided parallel mode yet.')
 }
 
-function goalNeedsSourceVoltage(goal: GuidedParallelGoal): boolean {
+function goalNeedsSourceExcitation(goal: GuidedParallelGoal): boolean {
   return (
     goal === 'parallel-source-current' ||
     goal === 'parallel-real-power' ||
@@ -639,4 +652,204 @@ function invalidFor(label: string, message: string): GuidedParallelCircuitInvali
 
 function capitalize(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1)
+}
+
+type SolvedRuleResult = Extract<SolveResult, { status: 'solved' }>
+
+interface ResolvedSourceExcitation {
+  sourceVoltagePhasor: SolvedRuleResult
+  sourceVoltageMagnitude: ReturnType<typeof scalar>
+  sourceCurrentMagnitudeResult: SolvedRuleResult
+  sourceCurrentPhasorResult: SolvedRuleResult
+  resistorCurrentMagnitudeResult: SolvedRuleResult
+  resistorCurrentPhasor: ReturnType<typeof complex>
+  inductorCurrentMagnitudeResult: SolvedRuleResult
+  inductorCurrentPhasor: ReturnType<typeof complex>
+  capacitorCurrentMagnitudeResult: SolvedRuleResult
+  capacitorCurrentPhasor: ReturnType<typeof complex>
+  realPowerResult: SolvedRuleResult
+}
+
+function resolveSourceExcitation(input: {
+  admittance: GuidedParallelCircuitSolved['reference']['admittanceRectangular']['result'] extends SolveResult
+    ? Extract<SolveResult, { status: 'solved' }>['value']
+    : never
+  admittanceMagnitude: GuidedParallelCircuitSolved['reference']['admittanceMagnitude']['result'] extends SolveResult
+    ? Extract<SolveResult, { status: 'solved' }>['value']
+    : never
+  conductance: number
+  inductiveSusceptance: number
+  capacitiveSusceptance: number
+  sourceVoltage?: ReturnType<typeof scalar>
+  sourceCurrentPhasor?: ReturnType<typeof complex>
+}): { value?: ResolvedSourceExcitation; error?: string } {
+  if (!input.sourceVoltage && !input.sourceCurrentPhasor) {
+    return { value: undefined, error: undefined }
+  }
+
+  const totalAdmittance = input.admittance
+  if (totalAdmittance.kind !== 'complex') {
+    return { value: undefined, error: 'The total admittance could not be represented as a phasor.' }
+  }
+
+  let sourceVoltagePhasor: ReturnType<typeof complex>
+  let sourceVoltageMagnitude = input.sourceVoltage ?? scalar(0)
+  let sourceCurrentPhasor = input.sourceCurrentPhasor
+
+  if (input.sourceVoltage) {
+    sourceVoltagePhasor = complex(input.sourceVoltage.value, 0)
+    if (!sourceCurrentPhasor) {
+      sourceCurrentPhasor = multiplyComplex(sourceVoltagePhasor, totalAdmittance)
+    } else {
+      const derivedSourceCurrent = multiplyComplex(sourceVoltagePhasor, totalAdmittance)
+      if (!complexesMatch(derivedSourceCurrent, sourceCurrentPhasor)) {
+        return {
+          value: undefined,
+          error:
+            'The entered source voltage and source current phasor do not match the network admittance. Clear one of them or correct the values.',
+        }
+      }
+    }
+  } else {
+    if (Math.abs(totalAdmittance.real) <= EPSILON && Math.abs(totalAdmittance.imag) <= EPSILON) {
+      return {
+        value: undefined,
+        error:
+          'The total admittance is zero, so the source voltage cannot be derived from the entered current phasor.',
+      }
+    }
+
+    sourceVoltagePhasor = divideComplex(sourceCurrentPhasor!, totalAdmittance)
+    sourceVoltageMagnitude = scalar(magnitude(sourceVoltagePhasor))
+  }
+
+  const sourceCurrentMagnitude = scalar(magnitude(sourceCurrentPhasor!))
+  const resistorCurrentPhasor = multiplyComplex(sourceVoltagePhasor, complex(input.conductance, 0))
+  const inductorCurrentPhasor = multiplyComplex(
+    sourceVoltagePhasor,
+    complex(0, -input.inductiveSusceptance),
+  )
+  const capacitorCurrentPhasor = multiplyComplex(
+    sourceVoltagePhasor,
+    complex(0, input.capacitiveSusceptance),
+  )
+
+  const sourceVoltagePhasorResult = input.sourceVoltage
+    ? solveWithRules({
+        target: 'phasorSourceVoltage',
+        knowns: {
+          voltage: input.sourceVoltage,
+          polarAngle: scalar(0),
+        },
+      })
+    : manualSolved('phasorSourceVoltage', sourceVoltagePhasor)
+  const sourceCurrentMagnitudeResult = input.sourceVoltage
+    ? solveWithRules({
+        target: 'current',
+        knowns: {
+          voltage: input.sourceVoltage,
+          admittanceMagnitude: input.admittanceMagnitude,
+        },
+      })
+    : manualSolved('current', sourceCurrentMagnitude)
+  const sourceCurrentPhasorResult = input.sourceVoltage
+    ? solveWithRules({
+        target: 'phasorCurrent',
+        knowns: {
+          phasorSourceVoltage: sourceVoltagePhasor,
+          admittanceComplex: totalAdmittance,
+        },
+      })
+    : manualSolved('phasorCurrent', sourceCurrentPhasor!)
+  const resistorCurrentMagnitudeResult = input.sourceVoltage
+    ? solveWithRules({
+        target: 'current',
+        knowns: {
+          voltage: input.sourceVoltage,
+          conductance: scalar(input.conductance),
+        },
+      })
+    : manualSolved('current', scalar(magnitude(resistorCurrentPhasor)))
+  const inductorCurrentMagnitudeResult = input.sourceVoltage
+    ? solveWithRules({
+        target: 'current',
+        knowns: {
+          voltage: input.sourceVoltage,
+          inductiveSusceptance: scalar(input.inductiveSusceptance),
+        },
+      })
+    : manualSolved('current', scalar(magnitude(inductorCurrentPhasor)))
+  const capacitorCurrentMagnitudeResult = input.sourceVoltage
+    ? solveWithRules({
+        target: 'current',
+        knowns: {
+          voltage: input.sourceVoltage,
+          capacitiveSusceptance: scalar(input.capacitiveSusceptance),
+        },
+      })
+    : manualSolved('current', scalar(magnitude(capacitorCurrentPhasor)))
+  const realPowerResult = input.sourceVoltage
+    ? solveWithRules({
+        target: 'realPower',
+        knowns: {
+          voltage: input.sourceVoltage,
+          conductance: scalar(input.conductance),
+        },
+      })
+    : manualSolved('realPower', scalar((sourceVoltageMagnitude.value ** 2) * input.conductance))
+
+  const results = [
+    sourceVoltagePhasorResult,
+    sourceCurrentMagnitudeResult,
+    sourceCurrentPhasorResult,
+    resistorCurrentMagnitudeResult,
+    inductorCurrentMagnitudeResult,
+    capacitorCurrentMagnitudeResult,
+    realPowerResult,
+  ]
+  if (results.some((result) => result.status !== 'solved')) {
+    return {
+      value: undefined,
+      error:
+        'The entered source excitation was valid, but one of the parallel phasor quantities could not be determined.',
+    }
+  }
+
+  return {
+    value: {
+      sourceVoltagePhasor: sourceVoltagePhasorResult as SolvedRuleResult,
+      sourceVoltageMagnitude,
+      sourceCurrentMagnitudeResult: sourceCurrentMagnitudeResult as SolvedRuleResult,
+      sourceCurrentPhasorResult: sourceCurrentPhasorResult as SolvedRuleResult,
+      resistorCurrentMagnitudeResult: resistorCurrentMagnitudeResult as SolvedRuleResult,
+      resistorCurrentPhasor,
+      inductorCurrentMagnitudeResult: inductorCurrentMagnitudeResult as SolvedRuleResult,
+      inductorCurrentPhasor,
+      capacitorCurrentMagnitudeResult: capacitorCurrentMagnitudeResult as SolvedRuleResult,
+      capacitorCurrentPhasor,
+      realPowerResult: realPowerResult as SolvedRuleResult,
+    },
+    error: undefined,
+  }
+}
+
+function manualSolved(target: QuantityId, value: QuantityValue): SolveResult {
+  return {
+    status: 'solved',
+    target,
+    value,
+    steps: [],
+  }
+}
+
+function complexesMatch(left: ReturnType<typeof complex>, right: ReturnType<typeof complex>) {
+  const scale = Math.max(
+    Math.hypot(left.real, left.imag),
+    Math.hypot(right.real, right.imag),
+    1,
+  )
+  return (
+    Math.abs(left.real - right.real) <= scale * 1e-6 &&
+    Math.abs(left.imag - right.imag) <= scale * 1e-6
+  )
 }

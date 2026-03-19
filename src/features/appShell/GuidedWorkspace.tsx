@@ -1,5 +1,6 @@
 import { quantityMap, type QuantityId } from '../../core'
 import { type GuidedMathGoalDefinition, type GuidedMathResult } from '../guidedMathGoals'
+import { type GuidedParallelCircuitResult, type GuidedParallelGoal } from '../guidedParallelCircuit'
 import type {
   GuidedComponentInput,
   GuidedComponentKind,
@@ -13,10 +14,20 @@ import type {
   GuidedSeriesParallelResult,
   GuidedSeriesParallelTopology,
 } from '../guidedSeriesParallelNetwork'
+import {
+  guidedSymbolDefinitionMap,
+  guidedSymbolGroups,
+  placeholderForGuidedSymbol,
+  unitOptionsForGuidedSymbol,
+  type GuidedSymbolProblemResult,
+  type GuidedSymbolRow,
+  type GuidedSymbolTopology,
+} from '../guidedSymbolProblem'
 import { GuidedResultsPanel, SeriesParallelNodeEditor } from './AppPanels'
 import {
   guidedGoalOptions,
   guidedMathGoalGroups,
+  parallelGoalOptions,
   guidedWorkflowOptions,
   placeholderForGuided,
   quantityGroups,
@@ -37,16 +48,21 @@ interface GuidedWorkspaceProps {
   guidedMathGoalId: string
   guidedMathResult: GuidedMathResult | null
   guidedMathRows: GuidedMathRow[]
+  parallelGoal: GuidedParallelGoal
+  parallelResult: GuidedParallelCircuitResult | null
   guidedResult: GuidedSeriesImpedanceResult | null
   guidedWorkflow: GuidedWorkflow
   selectedMathGoal: GuidedMathGoalDefinition
   seriesParallelGoal: GuidedSeriesParallelGoal
   seriesParallelResult: GuidedSeriesParallelResult | null
   seriesParallelRoot: GuidedSeriesParallelGroupNode
+  sourceCurrentPhasorRawValue: string
+  sourceCurrentPhasorUnitId: string
   sourceVoltageRawValue: string
   sourceVoltageUnitId: string
   onAddGuidedMathRow: () => void
   onAddGuidedComponent: () => void
+  onAddGuidedSymbolRow: () => void
   onAddSeriesParallelComponent: (parentId: string, kind: GuidedComponentKind) => void
   onAddSeriesParallelGroup: (parentId: string, topology: GuidedSeriesParallelTopology) => void
   onFrequencyRawValueChange: (value: string) => void
@@ -54,23 +70,34 @@ interface GuidedWorkspaceProps {
   onGuidedGoalChange: (goal: GuidedSeriesGoal) => void
   onGuidedMathGoalChange: (goalId: string) => void
   onGuidedWorkflowChange: (workflow: GuidedWorkflow) => void
+  onParallelGoalChange: (goal: GuidedParallelGoal) => void
   onRemoveGuidedMathRow: (rowId: string) => void
   onRemoveGuidedComponent: (componentId: string) => void
+  onRemoveGuidedSymbolRow: (rowId: string) => void
   onRemoveSeriesParallelNode: (nodeId: string) => void
   onResetSeriesParallelBuilder: () => void
   onSeriesParallelGoalChange: (goal: GuidedSeriesParallelGoal) => void
   onSolveGuidedMath: () => void
   onSolveGuidedMode: () => void
+  onSolveParallelMode: () => void
+  onSolveSymbolMode: () => void
   onSolveSeriesParallelMode: () => void
+  onSourceCurrentPhasorRawValueChange: (value: string) => void
+  onSourceCurrentPhasorUnitIdChange: (unitId: string) => void
   onSourceVoltageRawValueChange: (value: string) => void
   onSourceVoltageUnitIdChange: (unitId: string) => void
   onUpdateGuidedComponent: (componentId: string, updates: Partial<GuidedComponentInput>) => void
   onUpdateGuidedMathRow: (rowId: string, updates: Partial<GuidedMathRow>) => void
+  onUpdateGuidedSymbolRow: (rowId: string, updates: Partial<GuidedSymbolRow>) => void
   onUpdateSeriesParallelNode: (
     nodeId: string,
     updates: GuidedSeriesParallelNodeUpdates,
   ) => void
   onLoadSeriesParallelSample: (sampleId: string) => void
+  symbolResult: GuidedSymbolProblemResult | null
+  symbolRows: GuidedSymbolRow[]
+  symbolTopology: GuidedSymbolTopology
+  onSymbolTopologyChange: (topology: GuidedSymbolTopology) => void
 }
 
 export default function GuidedWorkspace({
@@ -81,16 +108,21 @@ export default function GuidedWorkspace({
   guidedMathGoalId,
   guidedMathResult,
   guidedMathRows,
+  parallelGoal,
+  parallelResult,
   guidedResult,
   guidedWorkflow,
   selectedMathGoal,
   seriesParallelGoal,
   seriesParallelResult,
   seriesParallelRoot,
+  sourceCurrentPhasorRawValue,
+  sourceCurrentPhasorUnitId,
   sourceVoltageRawValue,
   sourceVoltageUnitId,
   onAddGuidedMathRow,
   onAddGuidedComponent,
+  onAddGuidedSymbolRow,
   onAddSeriesParallelComponent,
   onAddSeriesParallelGroup,
   onFrequencyRawValueChange,
@@ -98,22 +130,35 @@ export default function GuidedWorkspace({
   onGuidedGoalChange,
   onGuidedMathGoalChange,
   onGuidedWorkflowChange,
+  onParallelGoalChange,
   onRemoveGuidedMathRow,
   onRemoveGuidedComponent,
+  onRemoveGuidedSymbolRow,
   onRemoveSeriesParallelNode,
   onResetSeriesParallelBuilder,
   onSeriesParallelGoalChange,
   onSolveGuidedMath,
   onSolveGuidedMode,
+  onSolveParallelMode,
+  onSolveSymbolMode,
   onSolveSeriesParallelMode,
+  onSourceCurrentPhasorRawValueChange,
+  onSourceCurrentPhasorUnitIdChange,
   onSourceVoltageRawValueChange,
   onSourceVoltageUnitIdChange,
   onUpdateGuidedComponent,
   onUpdateGuidedMathRow,
+  onUpdateGuidedSymbolRow,
   onUpdateSeriesParallelNode,
   onLoadSeriesParallelSample,
+  symbolResult,
+  symbolRows,
+  symbolTopology,
+  onSymbolTopologyChange,
 }: GuidedWorkspaceProps) {
   const selectedGoal = guidedGoalOptions.find((goal) => goal.value === guidedGoal) ?? guidedGoalOptions[0]
+  const selectedParallelGoal =
+    parallelGoalOptions.find((goal) => goal.value === parallelGoal) ?? parallelGoalOptions[0]
   const selectedSeriesParallelGoal =
     seriesParallelGoalOptions.find((goal) => goal.value === seriesParallelGoal) ??
     seriesParallelGoalOptions[0]
@@ -121,8 +166,10 @@ export default function GuidedWorkspace({
   const addAction =
     guidedWorkflow === 'chapter-goal'
       ? { label: 'Add known', onClick: onAddGuidedMathRow }
-      : guidedWorkflow === 'series-builder'
+      : guidedWorkflow === 'series-builder' || guidedWorkflow === 'parallel-builder'
         ? { label: 'Add component known', onClick: onAddGuidedComponent }
+        : guidedWorkflow === 'symbol-builder'
+          ? { label: 'Add symbol known', onClick: onAddGuidedSymbolRow }
         : null
 
   return (
@@ -170,6 +217,28 @@ export default function GuidedWorkspace({
             onUpdateGuidedMathRow={onUpdateGuidedMathRow}
             selectedMathGoal={selectedMathGoal}
           />
+        ) : guidedWorkflow === 'parallel-builder' ? (
+          <ParallelBuilder
+            frequencyRawValue={frequencyRawValue}
+            frequencyUnitId={frequencyUnitId}
+            guidedComponents={guidedComponents}
+            parallelGoal={parallelGoal}
+            selectedParallelGoal={selectedParallelGoal}
+            sourceCurrentPhasorRawValue={sourceCurrentPhasorRawValue}
+            sourceCurrentPhasorUnitId={sourceCurrentPhasorUnitId}
+            sourceVoltageRawValue={sourceVoltageRawValue}
+            sourceVoltageUnitId={sourceVoltageUnitId}
+            onFrequencyRawValueChange={onFrequencyRawValueChange}
+            onFrequencyUnitIdChange={onFrequencyUnitIdChange}
+            onParallelGoalChange={onParallelGoalChange}
+            onRemoveGuidedComponent={onRemoveGuidedComponent}
+            onSolveParallelMode={onSolveParallelMode}
+            onSourceCurrentPhasorRawValueChange={onSourceCurrentPhasorRawValueChange}
+            onSourceCurrentPhasorUnitIdChange={onSourceCurrentPhasorUnitIdChange}
+            onSourceVoltageRawValueChange={onSourceVoltageRawValueChange}
+            onSourceVoltageUnitIdChange={onSourceVoltageUnitIdChange}
+            onUpdateGuidedComponent={onUpdateGuidedComponent}
+          />
         ) : guidedWorkflow === 'series-parallel-builder' ? (
           <SeriesParallelBuilder
             frequencyRawValue={frequencyRawValue}
@@ -191,6 +260,19 @@ export default function GuidedWorkspace({
             seriesParallelRoot={seriesParallelRoot}
             sourceVoltageRawValue={sourceVoltageRawValue}
             sourceVoltageUnitId={sourceVoltageUnitId}
+          />
+        ) : guidedWorkflow === 'symbol-builder' ? (
+          <SymbolBuilder
+            guidedGoal={guidedGoal}
+            onGuidedGoalChange={onGuidedGoalChange}
+            onParallelGoalChange={onParallelGoalChange}
+            onRemoveGuidedSymbolRow={onRemoveGuidedSymbolRow}
+            onSolveSymbolMode={onSolveSymbolMode}
+            onSymbolTopologyChange={onSymbolTopologyChange}
+            onUpdateGuidedSymbolRow={onUpdateGuidedSymbolRow}
+            parallelGoal={parallelGoal}
+            symbolRows={symbolRows}
+            symbolTopology={symbolTopology}
           />
         ) : (
           <DiagramBuilder
@@ -214,10 +296,12 @@ export default function GuidedWorkspace({
 
       <GuidedResultsPanel
         guidedMathResult={guidedMathResult}
+        parallelResult={parallelResult}
         guidedResult={guidedResult}
         guidedWorkflow={guidedWorkflow}
         selectedMathGoal={selectedMathGoal}
         seriesParallelResult={seriesParallelResult}
+        symbolResult={symbolResult}
       />
     </main>
   )
@@ -230,6 +314,14 @@ function builderTitle(guidedWorkflow: GuidedWorkflow) {
 
   if (guidedWorkflow === 'series-builder') {
     return 'Enter the values from the series diagram'
+  }
+
+  if (guidedWorkflow === 'parallel-builder') {
+    return 'Enter the values from the parallel diagram'
+  }
+
+  if (guidedWorkflow === 'symbol-builder') {
+    return 'Type the textbook labels exactly as they appear'
   }
 
   return 'Build the mixed network exactly as it is drawn'
@@ -259,17 +351,40 @@ function renderWorkflowHelp(guidedWorkflow: GuidedWorkflow) {
     )
   }
 
-  return (
+  if (guidedWorkflow === 'parallel-builder') {
+    return (
       <div className="help-card">
-        <p className="detail-card__eyebrow">How the mixed-network builder works</p>
-        <p>1. Recreate the nested series and parallel blocks from the quiz diagram.</p>
-        <p>2. Use the network editor buttons to add each component known and any nested branch group the diagram shows.</p>
-        <p>3. Enter frequency when any inductor is given in henrys or any capacitor is given in farads.</p>
-        <p>4. Add the source voltage only when the selected goal needs it.</p>
-        <p>5. Solve to reduce the full network into one total impedance.</p>
+        <p className="detail-card__eyebrow">How the parallel builder works</p>
+        <p>1. Add the resistor, inductor, and capacitor branches exactly as the Chapter 16 diagram shows them.</p>
+        <p>2. Enter reactance directly in ohms, or enter L and C with the shared frequency.</p>
+        <p>3. Enter either the source voltage magnitude or the source current phasor when the problem asks for source-dependent values.</p>
+        <p>4. Solve to see the reduced Y and Z values plus branch-current phasors.</p>
       </div>
     )
   }
+
+  if (guidedWorkflow === 'symbol-builder') {
+    return (
+      <div className="help-card">
+        <p className="detail-card__eyebrow">How textbook-label mode works</p>
+        <p>1. Pick whether the printed problem is a series or parallel circuit.</p>
+        <p>2. Add only the labels you see in the screenshot or homework, such as R, XL, XC, L, C, f, E, V, or Is.</p>
+        <p>3. Choose the answer type the question asks for, then solve without rebuilding the full diagram by hand.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="help-card">
+      <p className="detail-card__eyebrow">How the mixed-network builder works</p>
+      <p>1. Recreate the nested series and parallel blocks from the quiz diagram.</p>
+      <p>2. Use the network editor buttons to add each component known and any nested branch group the diagram shows.</p>
+      <p>3. Enter frequency when any inductor is given in henrys or any capacitor is given in farads.</p>
+      <p>4. Add the source voltage only when the selected goal needs it.</p>
+      <p>5. Solve to reduce the full network into one total impedance.</p>
+    </div>
+  )
+}
 
 function ChapterGoalBuilder({
   guidedMathGoalId,
@@ -556,6 +671,110 @@ function SeriesParallelBuilder({
   )
 }
 
+function ParallelBuilder({
+  frequencyRawValue,
+  frequencyUnitId,
+  guidedComponents,
+  parallelGoal,
+  selectedParallelGoal,
+  sourceCurrentPhasorRawValue,
+  sourceCurrentPhasorUnitId,
+  sourceVoltageRawValue,
+  sourceVoltageUnitId,
+  onFrequencyRawValueChange,
+  onFrequencyUnitIdChange,
+  onParallelGoalChange,
+  onRemoveGuidedComponent,
+  onSolveParallelMode,
+  onSourceCurrentPhasorRawValueChange,
+  onSourceCurrentPhasorUnitIdChange,
+  onSourceVoltageRawValueChange,
+  onSourceVoltageUnitIdChange,
+  onUpdateGuidedComponent,
+}: {
+  frequencyRawValue: string
+  frequencyUnitId: string
+  guidedComponents: GuidedComponentInput[]
+  parallelGoal: GuidedParallelGoal
+  selectedParallelGoal: (typeof parallelGoalOptions)[number]
+  sourceCurrentPhasorRawValue: string
+  sourceCurrentPhasorUnitId: string
+  sourceVoltageRawValue: string
+  sourceVoltageUnitId: string
+  onFrequencyRawValueChange: (value: string) => void
+  onFrequencyUnitIdChange: (unitId: string) => void
+  onParallelGoalChange: (goal: GuidedParallelGoal) => void
+  onRemoveGuidedComponent: (componentId: string) => void
+  onSolveParallelMode: () => void
+  onSourceCurrentPhasorRawValueChange: (value: string) => void
+  onSourceCurrentPhasorUnitIdChange: (unitId: string) => void
+  onSourceVoltageRawValueChange: (value: string) => void
+  onSourceVoltageUnitIdChange: (unitId: string) => void
+  onUpdateGuidedComponent: (componentId: string, updates: Partial<GuidedComponentInput>) => void
+}) {
+  return (
+    <>
+      <label className="field">
+        <span>Question goal</span>
+        <select
+          value={parallelGoal}
+          onChange={(event) => onParallelGoalChange(event.target.value as GuidedParallelGoal)}
+        >
+          {parallelGoalOptions.map((goal) => (
+            <option key={goal.value} value={goal.value}>
+              {goal.label}
+            </option>
+          ))}
+        </select>
+        <small>{selectedParallelGoal.description}</small>
+      </label>
+
+      <article className="detail-card detail-card--goal">
+        <p className="detail-card__eyebrow">Parallel AC reduction</p>
+        <p>
+          This mode is built for the Chapter 16 screenshot and homework style: enter the parallel
+          branches exactly as drawn, then let the app reduce the total admittance, total
+          impedance, and branch-current phasors.
+        </p>
+      </article>
+
+      <FrequencyAndSourceInputs
+        frequencyRawValue={frequencyRawValue}
+        frequencyUnitId={frequencyUnitId}
+        sourceCurrentPhasorPlaceholder="1@80deg"
+        sourceCurrentPhasorRawValue={sourceCurrentPhasorRawValue}
+        sourceCurrentPhasorUnitId={sourceCurrentPhasorUnitId}
+        sourceVoltageRawValue={sourceVoltageRawValue}
+        sourceVoltageUnitId={sourceVoltageUnitId}
+        onFrequencyRawValueChange={onFrequencyRawValueChange}
+        onFrequencyUnitIdChange={onFrequencyUnitIdChange}
+        onSourceCurrentPhasorRawValueChange={onSourceCurrentPhasorRawValueChange}
+        onSourceCurrentPhasorUnitIdChange={onSourceCurrentPhasorUnitIdChange}
+        onSourceVoltageRawValueChange={onSourceVoltageRawValueChange}
+        onSourceVoltageUnitIdChange={onSourceVoltageUnitIdChange}
+        sourceVoltagePlaceholder="120"
+      />
+
+      <GuidedComponentRows
+        components={guidedComponents}
+        onRemoveGuidedComponent={onRemoveGuidedComponent}
+        onUpdateGuidedComponent={onUpdateGuidedComponent}
+      />
+
+      <div className="builder__footer">
+        <p>
+          Enter either the source voltage magnitude or the source current phasor when the problem
+          asks for branch-current or power outputs. If both are entered, the app checks that they
+          agree with the reduced admittance instead of guessing.
+        </p>
+        <button className="primary-button" onClick={onSolveParallelMode} type="button">
+          Solve parallel circuit
+        </button>
+      </div>
+    </>
+  )
+}
+
 function DiagramBuilder({
   frequencyRawValue,
   frequencyUnitId,
@@ -635,23 +854,192 @@ function DiagramBuilder({
   )
 }
 
+function SymbolBuilder({
+  guidedGoal,
+  onGuidedGoalChange,
+  onParallelGoalChange,
+  onRemoveGuidedSymbolRow,
+  onSolveSymbolMode,
+  onSymbolTopologyChange,
+  onUpdateGuidedSymbolRow,
+  parallelGoal,
+  symbolRows,
+  symbolTopology,
+}: {
+  guidedGoal: GuidedSeriesGoal
+  onGuidedGoalChange: (goal: GuidedSeriesGoal) => void
+  onParallelGoalChange: (goal: GuidedParallelGoal) => void
+  onRemoveGuidedSymbolRow: (rowId: string) => void
+  onSolveSymbolMode: () => void
+  onSymbolTopologyChange: (topology: GuidedSymbolTopology) => void
+  onUpdateGuidedSymbolRow: (rowId: string, updates: Partial<GuidedSymbolRow>) => void
+  parallelGoal: GuidedParallelGoal
+  symbolRows: GuidedSymbolRow[]
+  symbolTopology: GuidedSymbolTopology
+}) {
+  const selectedSeriesGoal =
+    guidedGoalOptions.find((goal) => goal.value === guidedGoal) ?? guidedGoalOptions[0]
+  const selectedParallelGoal =
+    parallelGoalOptions.find((goal) => goal.value === parallelGoal) ?? parallelGoalOptions[0]
+
+  return (
+    <>
+      <label className="field">
+        <span>Problem topology</span>
+        <select
+          value={symbolTopology}
+          onChange={(event) => onSymbolTopologyChange(event.target.value as GuidedSymbolTopology)}
+        >
+          <option value="series">Series textbook labels</option>
+          <option value="parallel">Parallel textbook labels</option>
+        </select>
+        <small>Pick the structure that matches the screenshot or homework statement.</small>
+      </label>
+
+      <label className="field">
+        <span>Question goal</span>
+        {symbolTopology === 'series' ? (
+          <select
+            value={guidedGoal}
+            onChange={(event) => onGuidedGoalChange(event.target.value as GuidedSeriesGoal)}
+          >
+            {guidedGoalOptions.map((goal) => (
+              <option key={goal.value} value={goal.value}>
+                {goal.label}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <select
+            value={parallelGoal}
+            onChange={(event) => onParallelGoalChange(event.target.value as GuidedParallelGoal)}
+          >
+            {parallelGoalOptions.map((goal) => (
+              <option key={goal.value} value={goal.value}>
+                {goal.label}
+              </option>
+            ))}
+          </select>
+        )}
+        <small>
+          {symbolTopology === 'series'
+            ? selectedSeriesGoal.description
+            : selectedParallelGoal.description}
+        </small>
+      </label>
+
+      <article className="detail-card detail-card--goal">
+        <p className="detail-card__eyebrow">Textbook-label entry</p>
+        <p>
+          This mode is best when the screenshot already uses labels like R, XL, XC, L, C, f, E,
+          V, or Is and you want to enter those labels directly instead of rebuilding the diagram.
+        </p>
+      </article>
+
+      <div className="rows">
+        {symbolRows.map((row) => {
+          const definition = guidedSymbolDefinitionMap[row.symbolId]
+          const unitOptions = unitOptionsForGuidedSymbol(row.symbolId)
+
+          return (
+            <article className="row-card row-card--symbol" key={row.id}>
+              <label className="field">
+                <span>Symbol</span>
+                <select
+                  value={row.symbolId}
+                  onChange={(event) =>
+                    onUpdateGuidedSymbolRow(row.id, { symbolId: event.target.value })
+                  }
+                >
+                  {guidedSymbolGroups.map((group) => (
+                    <optgroup key={group.key} label={group.label}>
+                      {group.symbols.map((symbol) => (
+                        <option key={symbol.id} value={symbol.id}>
+                          {symbol.label}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              </label>
+
+              <label className="field">
+                <span>Value</span>
+                <input
+                  value={row.rawValue}
+                  onChange={(event) => onUpdateGuidedSymbolRow(row.id, { rawValue: event.target.value })}
+                  placeholder={placeholderForGuidedSymbol(row.symbolId)}
+                />
+              </label>
+
+              <label className="field">
+                <span>Unit</span>
+                <select
+                  value={row.unitId}
+                  onChange={(event) => onUpdateGuidedSymbolRow(row.id, { unitId: event.target.value })}
+                >
+                  {unitOptions.map((unit) => (
+                    <option key={unit.id} value={unit.id}>
+                      {unit.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <button
+                className="ghost-button ghost-button--danger"
+                onClick={() => onRemoveGuidedSymbolRow(row.id)}
+                type="button"
+              >
+                Remove
+              </button>
+
+              <p className="row-card__hint">{definition.description}</p>
+            </article>
+          )
+        })}
+      </div>
+
+      <div className="builder__footer">
+        <p>
+          Use this when the screenshot is already written in textbook symbols. The app will map
+          those labels onto the guided solver for the selected series or parallel answer type.
+        </p>
+        <button className="primary-button" onClick={onSolveSymbolMode} type="button">
+          Solve textbook labels
+        </button>
+      </div>
+    </>
+  )
+}
+
 function FrequencyAndSourceInputs({
   frequencyRawValue,
   frequencyUnitId,
+  sourceCurrentPhasorPlaceholder,
+  sourceCurrentPhasorRawValue,
+  sourceCurrentPhasorUnitId,
   sourceVoltageRawValue,
   sourceVoltageUnitId,
   onFrequencyRawValueChange,
   onFrequencyUnitIdChange,
+  onSourceCurrentPhasorRawValueChange,
+  onSourceCurrentPhasorUnitIdChange,
   onSourceVoltageRawValueChange,
   onSourceVoltageUnitIdChange,
   sourceVoltagePlaceholder,
 }: {
   frequencyRawValue: string
   frequencyUnitId: string
+  sourceCurrentPhasorPlaceholder?: string
+  sourceCurrentPhasorRawValue?: string
+  sourceCurrentPhasorUnitId?: string
   sourceVoltageRawValue: string
   sourceVoltageUnitId: string
   onFrequencyRawValueChange: (value: string) => void
   onFrequencyUnitIdChange: (unitId: string) => void
+  onSourceCurrentPhasorRawValueChange?: (value: string) => void
+  onSourceCurrentPhasorUnitIdChange?: (unitId: string) => void
   onSourceVoltageRawValueChange: (value: string) => void
   onSourceVoltageUnitIdChange: (unitId: string) => void
   sourceVoltagePlaceholder: string
@@ -710,6 +1098,39 @@ function FrequencyAndSourceInputs({
           </label>
         </div>
       </article>
+
+      {typeof sourceCurrentPhasorRawValue === 'string' &&
+        typeof sourceCurrentPhasorUnitId === 'string' &&
+        onSourceCurrentPhasorRawValueChange &&
+        onSourceCurrentPhasorUnitIdChange && (
+          <article className="detail-card">
+            <p className="detail-card__eyebrow">Known source current phasor if needed</p>
+            <div className="frequency-row">
+              <label className="field">
+                <span>Value</span>
+                <input
+                  value={sourceCurrentPhasorRawValue}
+                  onChange={(event) => onSourceCurrentPhasorRawValueChange(event.target.value)}
+                  placeholder={sourceCurrentPhasorPlaceholder ?? '1@80deg'}
+                />
+              </label>
+
+              <label className="field">
+                <span>Unit</span>
+                <select
+                  value={sourceCurrentPhasorUnitId}
+                  onChange={(event) => onSourceCurrentPhasorUnitIdChange(event.target.value)}
+                >
+                  {quantityMap.phasorCurrent.units.map((unit) => (
+                    <option key={unit.id} value={unit.id}>
+                      {unit.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          </article>
+        )}
     </div>
   )
 }

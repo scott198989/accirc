@@ -1,12 +1,24 @@
 import { startTransition, useState } from 'react'
 import { quantityMap, solveCircuitProblem, type QuantityId, type SolveResult } from './core'
 import {
+  solveGuidedParallelCircuit,
+  type GuidedParallelCircuitResult,
+  type GuidedParallelGoal,
+} from './features/guidedParallelCircuit'
+import {
   solveGuidedSeriesImpedance,
   type GuidedComponentInput,
   type GuidedComponentKind,
   type GuidedSeriesGoal,
   type GuidedSeriesImpedanceResult,
 } from './features/guidedSeriesImpedance'
+import {
+  makeGuidedSymbolRow,
+  solveGuidedSymbolProblem,
+  type GuidedSymbolProblemResult,
+  type GuidedSymbolRow,
+  type GuidedSymbolTopology,
+} from './features/guidedSymbolProblem'
 import {
   addSeriesParallelChild,
   makeSeriesParallelComponent,
@@ -53,6 +65,7 @@ function App() {
   const [mode, setMode] = useState<AppMode>('guided')
   const [guidedWorkflow, setGuidedWorkflow] = useState<GuidedWorkflow>('chapter-goal')
   const [guidedGoal, setGuidedGoal] = useState<GuidedSeriesGoal>('series-impedance')
+  const [parallelGoal, setParallelGoal] = useState<GuidedParallelGoal>('parallel-admittance')
   const [seriesParallelGoal, setSeriesParallelGoal] =
     useState<GuidedSeriesParallelGoal>('series-parallel-impedance')
   const [guidedMathGoalId, setGuidedMathGoalId] = useState(defaultGuidedMathGoal.id)
@@ -69,15 +82,21 @@ function App() {
   const [frequencyUnitId, setFrequencyUnitId] = useState('hz')
   const [sourceVoltageRawValue, setSourceVoltageRawValue] = useState('')
   const [sourceVoltageUnitId, setSourceVoltageUnitId] = useState('v')
+  const [sourceCurrentPhasorRawValue, setSourceCurrentPhasorRawValue] = useState('')
+  const [sourceCurrentPhasorUnitId, setSourceCurrentPhasorUnitId] = useState('a')
   const [guidedComponents, setGuidedComponents] = useState<GuidedComponentInput[]>([
     makeGuidedComponent('resistor'),
   ])
   const [guidedResult, setGuidedResult] = useState<GuidedSeriesImpedanceResult | null>(null)
+  const [parallelResult, setParallelResult] = useState<GuidedParallelCircuitResult | null>(null)
   const [seriesParallelRoot, setSeriesParallelRoot] = useState<GuidedSeriesParallelGroupNode>(() =>
     makeSeriesParallelRoot(),
   )
   const [seriesParallelResult, setSeriesParallelResult] =
     useState<GuidedSeriesParallelResult | null>(null)
+  const [symbolTopology, setSymbolTopology] = useState<GuidedSymbolTopology>('series')
+  const [symbolRows, setSymbolRows] = useState<GuidedSymbolRow[]>([makeGuidedSymbolRow()])
+  const [symbolResult, setSymbolResult] = useState<GuidedSymbolProblemResult | null>(null)
 
   const selectedMathGoal = guidedMathGoalMap[guidedMathGoalId] ?? defaultGuidedMathGoal
 
@@ -248,6 +267,23 @@ function App() {
     })
   }
 
+  function solveParallelMode() {
+    startTransition(() => {
+      setParallelResult(
+        solveGuidedParallelCircuit({
+          goal: parallelGoal,
+          frequencyRawValue,
+          frequencyUnitId,
+          sourceVoltageRawValue,
+          sourceVoltageUnitId,
+          sourceCurrentPhasorRawValue,
+          sourceCurrentPhasorUnitId,
+          components: guidedComponents,
+        }),
+      )
+    })
+  }
+
   function addSeriesParallelComponentTo(parentId: string, kind: GuidedComponentKind) {
     setSeriesParallelRoot((current) =>
       addSeriesParallelChild(current, parentId, makeSeriesParallelComponent(kind)),
@@ -306,6 +342,49 @@ function App() {
     })
   }
 
+  function addGuidedSymbolRow() {
+    setSymbolRows((current) => [...current, makeGuidedSymbolRow()])
+  }
+
+  function updateGuidedSymbolRow(rowId: string, updates: Partial<GuidedSymbolRow>) {
+    setSymbolRows((current) =>
+      current.map((row) => {
+        if (row.id !== rowId) {
+          return row
+        }
+
+        if (updates.symbolId) {
+          const nextRow = makeGuidedSymbolRow(updates.symbolId)
+          return {
+            ...row,
+            symbolId: updates.symbolId,
+            rawValue: '',
+            unitId: nextRow.unitId,
+          }
+        }
+
+        return { ...row, ...updates }
+      }),
+    )
+  }
+
+  function removeGuidedSymbolRow(rowId: string) {
+    setSymbolRows((current) => (current.length === 1 ? current : current.filter((row) => row.id !== rowId)))
+  }
+
+  function solveSymbolMode() {
+    startTransition(() => {
+      setSymbolResult(
+        solveGuidedSymbolProblem({
+          topology: symbolTopology,
+          seriesGoal: guidedGoal,
+          parallelGoal,
+          rows: symbolRows,
+        }),
+      )
+    })
+  }
+
   function loadGuidedSample(sampleId: string) {
     const sample = guidedSamples.find((entry) => entry.id === sampleId)
     if (!sample) {
@@ -316,12 +395,16 @@ function App() {
       setMode('guided')
       setGuidedWorkflow('series-builder')
       setGuidedMathResult(null)
+      setParallelResult(null)
       setSeriesParallelResult(null)
+      setSymbolResult(null)
       setSeriesParallelRoot(makeSeriesParallelRoot())
       setFrequencyRawValue(sample.frequencyRawValue)
       setFrequencyUnitId(sample.frequencyUnitId)
       setSourceVoltageRawValue(sample.sourceVoltageRawValue)
       setSourceVoltageUnitId(sample.sourceVoltageUnitId)
+      setSourceCurrentPhasorRawValue('')
+      setSourceCurrentPhasorUnitId('a')
       setGuidedComponents(
         sample.components.map((component) =>
           makeGuidedComponent(
@@ -347,11 +430,15 @@ function App() {
       setGuidedWorkflow('series-parallel-builder')
       setGuidedMathResult(null)
       setGuidedResult(null)
+      setParallelResult(null)
+      setSymbolResult(null)
       setSeriesParallelGoal(sample.goal)
       setFrequencyRawValue(sample.frequencyRawValue)
       setFrequencyUnitId(sample.frequencyUnitId)
       setSourceVoltageRawValue(sample.sourceVoltageRawValue)
       setSourceVoltageUnitId(sample.sourceVoltageUnitId)
+      setSourceCurrentPhasorRawValue('')
+      setSourceCurrentPhasorUnitId('a')
       setSeriesParallelRoot(cloneSeriesParallelGroup(sample.root))
       setSeriesParallelResult(null)
     })
@@ -380,16 +467,21 @@ function App() {
           guidedMathGoalId={guidedMathGoalId}
           guidedMathResult={guidedMathResult}
           guidedMathRows={guidedMathRows}
+          parallelGoal={parallelGoal}
+          parallelResult={parallelResult}
           guidedResult={guidedResult}
           guidedWorkflow={guidedWorkflow}
           selectedMathGoal={selectedMathGoal}
           seriesParallelGoal={seriesParallelGoal}
           seriesParallelResult={seriesParallelResult}
           seriesParallelRoot={seriesParallelRoot}
+          sourceCurrentPhasorRawValue={sourceCurrentPhasorRawValue}
+          sourceCurrentPhasorUnitId={sourceCurrentPhasorUnitId}
           sourceVoltageRawValue={sourceVoltageRawValue}
           sourceVoltageUnitId={sourceVoltageUnitId}
           onAddGuidedMathRow={addGuidedMathRow}
           onAddGuidedComponent={addGuidedComponent}
+          onAddGuidedSymbolRow={addGuidedSymbolRow}
           onAddSeriesParallelComponent={addSeriesParallelComponentTo}
           onAddSeriesParallelGroup={addSeriesParallelGroupTo}
           onFrequencyRawValueChange={setFrequencyRawValue}
@@ -397,20 +489,31 @@ function App() {
           onGuidedGoalChange={setGuidedGoal}
           onGuidedMathGoalChange={changeGuidedMathGoal}
           onGuidedWorkflowChange={setGuidedWorkflow}
+          onParallelGoalChange={setParallelGoal}
           onRemoveGuidedMathRow={removeGuidedMathRow}
           onRemoveGuidedComponent={removeGuidedComponent}
+          onRemoveGuidedSymbolRow={removeGuidedSymbolRow}
           onRemoveSeriesParallelNode={removeSeriesParallelTreeNode}
           onResetSeriesParallelBuilder={resetSeriesParallelBuilder}
           onSeriesParallelGoalChange={setSeriesParallelGoal}
           onSolveGuidedMath={solveGuidedMathMode}
           onSolveGuidedMode={solveGuidedMode}
+          onSolveParallelMode={solveParallelMode}
+          onSolveSymbolMode={solveSymbolMode}
           onSolveSeriesParallelMode={solveSeriesParallelMode}
+          onSourceCurrentPhasorRawValueChange={setSourceCurrentPhasorRawValue}
+          onSourceCurrentPhasorUnitIdChange={setSourceCurrentPhasorUnitId}
           onSourceVoltageRawValueChange={setSourceVoltageRawValue}
           onSourceVoltageUnitIdChange={setSourceVoltageUnitId}
           onUpdateGuidedComponent={updateGuidedComponent}
           onUpdateGuidedMathRow={updateGuidedMathRow}
+          onUpdateGuidedSymbolRow={updateGuidedSymbolRow}
           onUpdateSeriesParallelNode={updateSeriesParallelNodeById}
           onLoadSeriesParallelSample={loadSeriesParallelSample}
+          symbolResult={symbolResult}
+          symbolRows={symbolRows}
+          symbolTopology={symbolTopology}
+          onSymbolTopologyChange={setSymbolTopology}
         />
       ) : (
         <FormulaWorkspace

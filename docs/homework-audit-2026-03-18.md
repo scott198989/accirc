@@ -1,5 +1,23 @@
 # Homework Audit - March 18, 2026
 
+## Post-implementation update
+
+The app now exposes the missing solver paths that were already present in the codebase and adds the remaining direct Chapter 15 and Chapter 16 formula goals needed for the uploaded homework and screenshot equations.
+
+What now solves directly in the app:
+
+- Chapter 15 series-diagram questions through the series builder
+- Chapter 15 direct phasor, waveform-writeback, capacitance-from-reactance, and voltage-divider questions through quiz-goal mode
+- Chapter 16 parallel-diagram questions through the parallel builder
+- Chapter 16 current-divider style problems through the parallel builder using either source voltage or a source-current phasor
+- Screenshot-style textbook labels such as `R`, `XL`, `XC`, `L`, `C`, `f`, `E`, `V`, and `Is` through the textbook-label workflow
+
+Still primarily manual or presentation-oriented:
+
+- waveform sketches and overlaid plots
+- admittance and phasor diagrams as drawn graphics
+- explicit KCL and KVL proof writeups beyond the computed phasors and totals
+
 ## Files reviewed
 
 - `C:\Users\Scott\OneDrive\Desktop\Scott Tuschl HW Cha 15 A000834342.docx`

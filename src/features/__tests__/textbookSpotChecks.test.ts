@@ -297,6 +297,21 @@ describe('textbook spot checks', () => {
     expect(Math.atan2(result.value.imag, result.value.real)).toBeCloseTo((-170 * Math.PI) / 180, 10)
   })
 
+  it('matches Chapter 15 Problem 17 for capacitance from XC and frequency', () => {
+    const goal = guidedMathGoalMap['capacitance-from-reactance-and-frequency']
+    const result = solveGuidedMathGoal(goal, [
+      { quantityId: 'capacitiveReactance', rawValue: '100', unitId: 'ohm' },
+      { quantityId: 'frequency', rawValue: '60', unitId: 'hz' },
+    ])
+
+    expect(result.status).toBe('solved')
+    if (result.status !== 'solved' || !('value' in result) || result.value.kind !== 'scalar') {
+      return
+    }
+
+    expect(result.value.value).toBeCloseTo(26.5258e-6, 10)
+  })
+
   it('matches Chapter 15 Problem 3(d) for the sinusoidal voltage writeback', () => {
     const goal = guidedMathGoalMap['voltage-sine-expression-from-phasor']
     const result = solveGuidedMathGoal(goal, [
@@ -342,6 +357,23 @@ describe('textbook spot checks', () => {
 
     expect(result.value.real).toBeCloseTo(1600, 8)
     expect(result.value.imag).toBeCloseTo(1200, 8)
+  })
+
+  it('matches Chapter 15 Problem 28 for AC voltage-divider branch voltage', () => {
+    const goal = guidedMathGoalMap['branch-voltage-from-source-and-impedances']
+    const result = solveGuidedMathGoal(goal, [
+      { quantityId: 'phasorSourceVoltage', rawValue: '120@0deg', unitId: 'v' },
+      { quantityId: 'branchImpedance', rawValue: '40+30j', unitId: 'ohm' },
+      { quantityId: 'totalImpedance', rawValue: '80+30j', unitId: 'ohm' },
+    ])
+
+    expect(result.status).toBe('solved')
+    if (result.status !== 'solved' || !('value' in result) || result.value.kind !== 'complex') {
+      return
+    }
+
+    expect(result.value.real).toBeCloseTo(67.39726027, 7)
+    expect(result.value.imag).toBeCloseTo(19.72602739, 7)
   })
 
   it('matches quiz Questions 4 and 7 for total series RL impedance from R and XL', () => {

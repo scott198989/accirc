@@ -18,6 +18,7 @@ export type GuidedSymbolTopology = 'series' | 'parallel'
 type GuidedSymbolQuantityId =
   | 'frequency'
   | 'voltage'
+  | 'phasorCurrent'
   | 'resistance'
   | 'inductiveReactance'
   | 'capacitiveReactance'
@@ -40,7 +41,7 @@ interface ComponentGuidedSymbolDefinition extends BaseGuidedSymbolDefinition {
 }
 
 interface GlobalGuidedSymbolDefinition extends BaseGuidedSymbolDefinition {
-  kind: 'frequency' | 'sourceVoltage'
+  kind: 'frequency' | 'sourceVoltage' | 'sourceCurrentPhasor'
 }
 
 export type GuidedSymbolDefinition =
@@ -164,6 +165,15 @@ export const guidedSymbolDefinitions: GuidedSymbolDefinition[] = [
     quantityId: 'voltage',
     kind: 'sourceVoltage',
   },
+  {
+    id: 'is',
+    label: 'Is',
+    description: 'Source current phasor for parallel current-divider style problems.',
+    quantityId: 'phasorCurrent',
+    kind: 'sourceCurrentPhasor',
+    preferredUnitId: 'a',
+    placeholder: '1@80deg',
+  },
 ]
 
 export const guidedSymbolDefinitionMap = Object.fromEntries(
@@ -204,7 +214,10 @@ export const guidedSymbolGroups = [
     key: 'global',
     label: 'Global symbols',
     symbols: guidedSymbolDefinitions.filter(
-      (definition) => definition.kind === 'frequency' || definition.kind === 'sourceVoltage',
+      (definition) =>
+        definition.kind === 'frequency' ||
+        definition.kind === 'sourceVoltage' ||
+        definition.kind === 'sourceCurrentPhasor',
     ),
   },
 ]
@@ -240,6 +253,8 @@ export function solveGuidedSymbolProblem(
   let frequencyUnitId = quantityMap.frequency.defaultUnitId
   let sourceVoltageRawValue = ''
   let sourceVoltageUnitId = quantityMap.voltage.defaultUnitId
+  let sourceCurrentPhasorRawValue = ''
+  let sourceCurrentPhasorUnitId = quantityMap.phasorCurrent.defaultUnitId
 
   const components: GuidedComponentInput[] = []
 
@@ -279,6 +294,19 @@ export function solveGuidedSymbolProblem(
       continue
     }
 
+    if (definition.kind === 'sourceCurrentPhasor') {
+      if (sourceCurrentPhasorRawValue.trim().length > 0) {
+        return invalidResult(
+          input.topology,
+          'Enter the source current phasor only once in variable mode. Use one Is row for the shared source current.',
+        )
+      }
+
+      sourceCurrentPhasorRawValue = row.rawValue
+      sourceCurrentPhasorUnitId = row.unitId
+      continue
+    }
+
     if (definition.kind !== 'component') {
       return invalidResult(input.topology, `The symbol ${definition.label} is not a component entry.`)
     }
@@ -294,6 +322,13 @@ export function solveGuidedSymbolProblem(
   }
 
   if (input.topology === 'series') {
+    if (sourceCurrentPhasorRawValue.trim().length > 0) {
+      return invalidResult(
+        input.topology,
+        'Source current phasor entries are currently supported only for parallel textbook-label problems.',
+      )
+    }
+
     return {
       topology: 'series',
       result: solveGuidedSeriesImpedance({
@@ -315,6 +350,8 @@ export function solveGuidedSymbolProblem(
       frequencyUnitId,
       sourceVoltageRawValue,
       sourceVoltageUnitId,
+      sourceCurrentPhasorRawValue,
+      sourceCurrentPhasorUnitId,
       components,
     }),
   }

@@ -96,4 +96,26 @@ describe('guidedSymbolProblem', () => {
     expect(placeholderForGuidedSymbol('l2')).toBe('47')
     expect(placeholderForGuidedSymbol('c')).toBe('0.1')
   })
+
+  it('passes Is into the parallel symbol workflow for current-divider style problems', () => {
+    const result = solveGuidedSymbolProblem({
+      topology: 'parallel',
+      seriesGoal: 'series-impedance',
+      parallelGoal: 'parallel-inductor-current',
+      rows: [
+        { id: 'is', symbolId: 'is', rawValue: '1@80deg', unitId: 'a' },
+        { id: 'r', symbolId: 'r', rawValue: '5', unitId: 'ohm' },
+        { id: 'xl', symbolId: 'xl', rawValue: '8', unitId: 'ohm' },
+      ],
+    })
+
+    expect(result.topology).toBe('parallel')
+    expect(result.result.status).toBe('solved')
+    if (result.topology !== 'parallel' || result.result.status !== 'solved') {
+      return
+    }
+
+    expect(result.result.reference.sourceVoltagePhasor).toBeDefined()
+    expect(result.result.reference.inductorCurrent?.secondaryText).toMatch(/Current phasor:/i)
+  })
 })
