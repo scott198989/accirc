@@ -1,0 +1,33 @@
+{
+  "sourceId": "hw-17",
+  "parser": "docx",
+  "paragraphCount": 26,
+  "paragraphs": [
+    "Scott Tuschl",
+    "HW 7",
+    "Due March 20 by 11:59 pm",
+    "A000834342",
+    "3. For the network in Fig. 17.31:",
+    "Find the total impedance",
+    "Find the current",
+    "Calculate using the current divider rule.",
+    "Calculate using the voltage divider rule.",
+    "Calculate the average power delivered to the network.",
+    "Fig 17.31",
+    "5. For the network in Fig. 17.33:",
+    "Find the current I.",
+    "Find the voltage",
+    "Find the average power delivered to the network.",
+    "Fig 17.33",
+    "7. For the network in Fig. 17.35:",
+    "Find the current and current",
+    "Find the voltage",
+    "Calculate the average power delivered to the network.",
+    "Fig 17.35",
+    "16. For the ladder network of Fig. 17.44:",
+    "Find the total impedance",
+    "Find the voltage across the resistor",
+    "Fig. 17.44",
+    "17. Find the current for the network in Fig. 17.45."
+  ]
+}

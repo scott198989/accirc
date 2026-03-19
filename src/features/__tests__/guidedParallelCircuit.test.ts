@@ -209,4 +209,84 @@ describe('solveGuidedParallelCircuit', () => {
     expect(result.output.result.value.value).toBeCloseTo(0.52999894, 6)
     expect(result.reference.inductorCurrent?.secondaryText).toMatch(/Current phasor:/i)
   })
+
+  it('surfaces equivalent series resistance and reactance from the reduced impedance', () => {
+    const resistanceResult = solveGuidedParallelCircuit({
+      goal: 'parallel-equivalent-series-resistance',
+      frequencyRawValue: '',
+      frequencyUnitId: 'hz',
+      sourceVoltageRawValue: '',
+      sourceVoltageUnitId: 'v',
+      components: [
+        {
+          id: 'r1',
+          kind: 'resistor',
+          valueMode: 'resistance',
+          rawValue: '5',
+          unitId: 'ohm',
+        },
+        {
+          id: 'l1',
+          kind: 'inductor',
+          valueMode: 'reactance',
+          rawValue: '8',
+          unitId: 'ohm',
+        },
+        {
+          id: 'c1',
+          kind: 'capacitor',
+          valueMode: 'reactance',
+          rawValue: '20',
+          unitId: 'ohm',
+        },
+      ],
+    })
+
+    const reactanceResult = solveGuidedParallelCircuit({
+      goal: 'parallel-equivalent-series-reactance',
+      frequencyRawValue: '',
+      frequencyUnitId: 'hz',
+      sourceVoltageRawValue: '',
+      sourceVoltageUnitId: 'v',
+      components: [
+        {
+          id: 'r1',
+          kind: 'resistor',
+          valueMode: 'resistance',
+          rawValue: '5',
+          unitId: 'ohm',
+        },
+        {
+          id: 'l1',
+          kind: 'inductor',
+          valueMode: 'reactance',
+          rawValue: '8',
+          unitId: 'ohm',
+        },
+        {
+          id: 'c1',
+          kind: 'capacitor',
+          valueMode: 'reactance',
+          rawValue: '20',
+          unitId: 'ohm',
+        },
+      ],
+    })
+
+    expect(resistanceResult.status).toBe('solved')
+    expect(reactanceResult.status).toBe('solved')
+    if (
+      resistanceResult.status !== 'solved' ||
+      resistanceResult.output.result.status !== 'solved' ||
+      resistanceResult.output.result.value.kind !== 'scalar' ||
+      reactanceResult.status !== 'solved' ||
+      reactanceResult.output.result.status !== 'solved' ||
+      reactanceResult.output.result.value.kind !== 'scalar'
+    ) {
+      return
+    }
+
+    expect(resistanceResult.output.result.value.value).toBeCloseTo(4.38356164, 6)
+    expect(reactanceResult.output.result.value.value).toBeCloseTo(1.64383562, 6)
+  })
 })

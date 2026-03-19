@@ -549,6 +549,8 @@ function GuidedParallelResultPanel({
         <ComputedValueCard value={result.reference.admittanceAngle} />
         <ComputedValueCard value={result.reference.impedanceRectangular} />
         <ComputedValueCard value={result.reference.impedanceMagnitude} />
+        <ComputedValueCard value={result.reference.equivalentSeriesResistance} />
+        <ComputedValueCard value={result.reference.equivalentSeriesReactance} />
         <ComputedValueCard value={result.reference.powerFactor} />
         {result.reference.sourceVoltagePhasor && <ComputedValueCard value={result.reference.sourceVoltagePhasor} />}
         {result.reference.sourceCurrent && <ComputedValueCard value={result.reference.sourceCurrent} />}
@@ -802,6 +804,12 @@ function GuidedSeriesParallelResultPanel({
           )}
           {result.reference.realPower && (
             <p>Real power = {formatQuantitySmart('realPower', result.reference.realPower)}</p>
+          )}
+          {result.reference.selectedNode && (
+            <p>
+              Selected target = {result.reference.selectedNode.label} (
+              {result.reference.selectedNode.kind})
+            </p>
           )}
         </article>
 

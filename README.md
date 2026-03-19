@@ -45,31 +45,46 @@ Those documents describe:
 
 ## Reference library
 
-The homework files and screenshot sets now live inside the repo under:
+The repo now keeps a source-centric canonical library under:
 
-- `public/reference-library/homework/`
-- `public/reference-library/screenshots/`
+- `public/reference-library/sources/`
+- `public/reference-library/extracted/`
 - `src/data/referenceLibrary.ts`
+- `src/data/questionCatalog.ts`
+
+The maintained canonical coverage sources are:
+
+- `HW 15`
+- `HW 16`
+- `HW 17`
+- `Quiz 15-16`
+- `Quiz 17`
+
+The `Study guide` screenshot set is still committed, but it is explicitly supplemental and not part
+of formula-coverage scope.
 
 Current imported totals:
 
-- `109` canonical files committed to the repo
-- `2` homework documents
-- `107` screenshots
-- `17` exact duplicate screenshots removed during import
+- `6` source groups
+- `5` canonical coverage sources
+- `3` homework documents
+- `48` canonical quiz screenshots
+- `59` supplemental study-guide screenshots
+- `110` committed reference assets
+- `5` extracted text artifacts
 
-The generated manifest preserves:
+The manifest and question catalog preserve:
 
-- the original zip paths
-- SHA-256 hashes for each canonical file
-- which duplicate screenshot paths were collapsed into a single kept copy
+- source provenance back to the raw materials
+- SHA-256 hashes for each committed asset
+- canonical-vs-supplemental scope
+- extracted OCR / document text artifacts
+- one canonical question record per question or homework sub-part
 
-Binary asset safety for Git pulls is enforced in `.gitattributes` for `*.docx`, `*.pdf`, and `*.png`.
-
-If you need to re-import a new archive later, run:
+If you need to rebuild the manifest later, run:
 
 ```bash
-python scripts/import_reference_library.py "C:\path\to\Homeworks and Screenshots.zip"
+python scripts/import_reference_library.py --project-root C:\dev\accirc
 ```
 
 ## GitHub sync for desktop and laptop
@@ -110,9 +125,11 @@ The current UI is focused on the Chapter 15, 16, and 17 homework-and-screenshot 
 - resistor-in-parallel-with-coil impedance
 - capacitive susceptance
 - series RL, RC, and RLC diagram entry
+- parallel admittance, impedance, source current, branch-current, and equivalent-series outputs
 - mixed series-parallel impedance reduction for the quiz network problems
-- mixed-network source current and real-power solves for Chapter 17 style reductions
+- mixed-network source current, real-power, branch-voltage, and branch-current solves
 - formula previews on each quiz goal so the user can see the solve path before entering values
+- canonical homework and quiz source browsing tied to the question catalog
 
 ## UI modes
 
@@ -121,7 +138,9 @@ The app currently exposes two working modes:
 - `Guided mode`
   - `Quiz math goal`
   - `Series circuit from diagram`
+  - `Parallel circuit from diagram`
   - `Mixed series-parallel network`
+  - `Textbook labels`
 - `Formula mode`
   - direct quantity-based solving within the same Chapter 15, 16, and 17 quiz scope
 
@@ -309,4 +328,3 @@ Good folders to keep consistent are:
 
 - repo: `https://github.com/scott198989/accirc.git`
 - branch: `main`
-- latest pushed solver-coverage commit: `c784f9a`

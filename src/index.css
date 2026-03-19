@@ -588,6 +588,33 @@ h2 {
   margin-bottom: 1rem;
 }
 
+.quick-picks-card {
+  margin-bottom: 1rem;
+}
+
+.quick-picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-bottom: 0.85rem;
+}
+
+.quick-pick-button {
+  border: 1px solid var(--border-regular);
+  background: var(--surface-button);
+  color: var(--text-primary);
+  border-radius: 18px;
+  padding: 0.8rem 0.95rem;
+  text-align: left;
+  max-width: 100%;
+}
+
+.quick-pick-button--active {
+  border-color: var(--border-highlight-strong);
+  background: color-mix(in srgb, var(--surface-button) 72%, var(--accent) 28%);
+  box-shadow: 0 10px 22px var(--shadow-highlight);
+}
+
 .formula-summary {
   margin: 1rem 0 0;
   padding-top: 0.9rem;

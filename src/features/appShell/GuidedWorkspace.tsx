@@ -26,9 +26,11 @@ import {
 import { GuidedResultsPanel, SeriesParallelNodeEditor } from './AppPanels'
 import {
   guidedGoalOptions,
+  guidedMathQuickPicks,
   guidedMathGoalGroups,
   parallelGoalOptions,
   guidedWorkflowOptions,
+  listSeriesParallelTargets,
   placeholderForGuided,
   quantityGroups,
   seriesParallelGoalOptions,
@@ -56,6 +58,7 @@ interface GuidedWorkspaceProps {
   seriesParallelGoal: GuidedSeriesParallelGoal
   seriesParallelResult: GuidedSeriesParallelResult | null
   seriesParallelRoot: GuidedSeriesParallelGroupNode
+  seriesParallelTargetNodeId: string
   sourceCurrentPhasorRawValue: string
   sourceCurrentPhasorUnitId: string
   sourceVoltageRawValue: string
@@ -77,6 +80,7 @@ interface GuidedWorkspaceProps {
   onRemoveSeriesParallelNode: (nodeId: string) => void
   onResetSeriesParallelBuilder: () => void
   onSeriesParallelGoalChange: (goal: GuidedSeriesParallelGoal) => void
+  onSeriesParallelTargetNodeIdChange: (nodeId: string) => void
   onSolveGuidedMath: () => void
   onSolveGuidedMode: () => void
   onSolveParallelMode: () => void
@@ -116,6 +120,7 @@ export default function GuidedWorkspace({
   seriesParallelGoal,
   seriesParallelResult,
   seriesParallelRoot,
+  seriesParallelTargetNodeId,
   sourceCurrentPhasorRawValue,
   sourceCurrentPhasorUnitId,
   sourceVoltageRawValue,
@@ -137,6 +142,7 @@ export default function GuidedWorkspace({
   onRemoveSeriesParallelNode,
   onResetSeriesParallelBuilder,
   onSeriesParallelGoalChange,
+  onSeriesParallelTargetNodeIdChange,
   onSolveGuidedMath,
   onSolveGuidedMode,
   onSolveParallelMode,
@@ -251,6 +257,7 @@ export default function GuidedWorkspace({
             onRemoveSeriesParallelNode={onRemoveSeriesParallelNode}
             onResetSeriesParallelBuilder={onResetSeriesParallelBuilder}
             onSeriesParallelGoalChange={onSeriesParallelGoalChange}
+            onSeriesParallelTargetNodeIdChange={onSeriesParallelTargetNodeIdChange}
             onSolveSeriesParallelMode={onSolveSeriesParallelMode}
             onSourceVoltageRawValueChange={onSourceVoltageRawValueChange}
             onSourceVoltageUnitIdChange={onSourceVoltageUnitIdChange}
@@ -258,6 +265,7 @@ export default function GuidedWorkspace({
             selectedSeriesParallelGoal={selectedSeriesParallelGoal}
             seriesParallelGoal={seriesParallelGoal}
             seriesParallelRoot={seriesParallelRoot}
+            seriesParallelTargetNodeId={seriesParallelTargetNodeId}
             sourceVoltageRawValue={sourceVoltageRawValue}
             sourceVoltageUnitId={sourceVoltageUnitId}
           />
@@ -309,7 +317,7 @@ export default function GuidedWorkspace({
 
 function builderTitle(guidedWorkflow: GuidedWorkflow) {
   if (guidedWorkflow === 'chapter-goal') {
-    return 'Pick the exact quiz math answer type'
+    return 'Match the question wording'
   }
 
   if (guidedWorkflow === 'series-builder') {
@@ -331,10 +339,10 @@ function renderWorkflowHelp(guidedWorkflow: GuidedWorkflow) {
   if (guidedWorkflow === 'chapter-goal') {
     return (
       <div className="help-card">
-        <p className="detail-card__eyebrow">How quiz-goal mode works</p>
-        <p>1. Pick the exact kind of answer the quiz asks for.</p>
-        <p>2. The required knowns load automatically, and you can add extra knowns when the quiz gives more values than the base pattern.</p>
-        <p>3. Click solve and let the deterministic rules engine pick the formula path.</p>
+        <p className="detail-card__eyebrow">How wording-match mode works</p>
+        <p>1. Ignore the formula name and match the words the question uses.</p>
+        <p>2. Look for what the problem wants and what givens it shows, such as XL and f or E and I.</p>
+        <p>3. The needed inputs load automatically, so you only type the givens and solve.</p>
       </div>
     )
   }
@@ -406,7 +414,7 @@ function ChapterGoalBuilder({
   return (
     <>
       <label className="field">
-        <span>Question goal</span>
+        <span>Best match for the question</span>
         <select value={guidedMathGoalId} onChange={(event) => onGuidedMathGoalChange(event.target.value)}>
           {guidedMathGoalGroups.map((group) => (
             <optgroup key={group.key} label={group.label}>
@@ -421,13 +429,43 @@ function ChapterGoalBuilder({
         <small>{selectedMathGoal.description}</small>
       </label>
 
+      <article className="detail-card quick-picks-card">
+        <p className="detail-card__eyebrow">If the problem says...</p>
+        <div className="quick-picks">
+          {guidedMathQuickPicks.map((goal) => (
+            <button
+              key={goal.id}
+              className={
+                goal.id === guidedMathGoalId
+                  ? 'quick-pick-button quick-pick-button--active'
+                  : 'quick-pick-button'
+              }
+              onClick={() => onGuidedMathGoalChange(goal.id)}
+              type="button"
+            >
+              {goal.questionCue ?? goal.label}
+            </button>
+          ))}
+        </div>
+        <p className="row-card__hint">
+          Start with the button that sounds closest to the wording on the page. You can still use
+          the full dropdown below it any time.
+        </p>
+      </article>
+
       <article className="detail-card detail-card--goal">
-        <p className="detail-card__eyebrow">Quiz math family</p>
-        <h3>{selectedMathGoal.section}</h3>
+        <p className="detail-card__eyebrow">Use this when the question says something like</p>
+        <h3>{selectedMathGoal.questionCue ?? selectedMathGoal.label}</h3>
         <p>{selectedMathGoal.description}</p>
+        <p>
+          <strong>Look for these givens:</strong> {goalInputSummary(selectedMathGoal)}
+        </p>
+        <p>
+          <strong>This goal solves for:</strong> {goalOutputSummary(selectedMathGoal)}
+        </p>
         {selectedMathGoal.formulaSummary && selectedMathGoal.formulaSummary.length > 0 && (
           <div className="formula-summary">
-            <p className="detail-card__eyebrow">Formula path</p>
+            <p className="detail-card__eyebrow">Behind-the-scenes formula path</p>
             <ul className="formula-summary__list">
               {selectedMathGoal.formulaSummary.map((formula) => (
                 <li key={`${selectedMathGoal.id}-${formula}`}>{formula}</li>
@@ -541,6 +579,7 @@ function SeriesParallelBuilder({
   onRemoveSeriesParallelNode,
   onResetSeriesParallelBuilder,
   onSeriesParallelGoalChange,
+  onSeriesParallelTargetNodeIdChange,
   onSolveSeriesParallelMode,
   onSourceVoltageRawValueChange,
   onSourceVoltageUnitIdChange,
@@ -548,6 +587,7 @@ function SeriesParallelBuilder({
   selectedSeriesParallelGoal,
   seriesParallelGoal,
   seriesParallelRoot,
+  seriesParallelTargetNodeId,
   sourceVoltageRawValue,
   sourceVoltageUnitId,
 }: {
@@ -561,6 +601,7 @@ function SeriesParallelBuilder({
   onRemoveSeriesParallelNode: (nodeId: string) => void
   onResetSeriesParallelBuilder: () => void
   onSeriesParallelGoalChange: (goal: GuidedSeriesParallelGoal) => void
+  onSeriesParallelTargetNodeIdChange: (nodeId: string) => void
   onSolveSeriesParallelMode: () => void
   onSourceVoltageRawValueChange: (value: string) => void
   onSourceVoltageUnitIdChange: (unitId: string) => void
@@ -571,9 +612,13 @@ function SeriesParallelBuilder({
   selectedSeriesParallelGoal: (typeof seriesParallelGoalOptions)[number]
   seriesParallelGoal: GuidedSeriesParallelGoal
   seriesParallelRoot: GuidedSeriesParallelGroupNode
+  seriesParallelTargetNodeId: string
   sourceVoltageRawValue: string
   sourceVoltageUnitId: string
 }) {
+  const targetOptions = listSeriesParallelTargets(seriesParallelRoot)
+  const needsTarget = needsSeriesParallelTarget(seriesParallelGoal)
+
   return (
     <>
       <label className="field">
@@ -590,6 +635,26 @@ function SeriesParallelBuilder({
         </select>
         <small>{selectedSeriesParallelGoal.description}</small>
       </label>
+
+      {needsTarget && (
+        <label className="field">
+          <span>Branch or reduced block target</span>
+          <select
+            value={seriesParallelTargetNodeId}
+            onChange={(event) => onSeriesParallelTargetNodeIdChange(event.target.value)}
+          >
+            <option value="">Pick a target</option>
+            {targetOptions.map((target) => (
+              <option key={target.id} value={target.id}>
+                {target.label} ({target.kind})
+              </option>
+            ))}
+          </select>
+          <small>
+            Select the exact branch or reduced subnetwork the homework is asking about.
+          </small>
+        </label>
+      )}
 
       <article className="detail-card detail-card--goal">
         <p className="detail-card__eyebrow">Mixed-network reduction</p>
@@ -1220,4 +1285,30 @@ function GuidedComponentRows({
       ))}
     </div>
   )
+}
+
+function needsSeriesParallelTarget(goal: GuidedSeriesParallelGoal) {
+  return goal === 'series-parallel-branch-voltage' || goal === 'series-parallel-branch-current'
+}
+
+function goalInputSummary(goal: GuidedMathGoalDefinition) {
+  return goal.inputs
+    .map((quantityId) => `${quantityMap[quantityId].symbol} (${quantityMap[quantityId].label})`)
+    .join(', ')
+}
+
+function goalOutputSummary(goal: GuidedMathGoalDefinition) {
+  if (goal.target) {
+    return `${quantityMap[goal.target].symbol} (${quantityMap[goal.target].label})`
+  }
+
+  if (goal.waveformGoal === 'current-sine-expression-from-phasor') {
+    return 'the sinusoidal current expression i(t)'
+  }
+
+  if (goal.waveformGoal === 'voltage-sine-expression-from-phasor') {
+    return 'the sinusoidal voltage expression v(t)'
+  }
+
+  return 'the requested expression'
 }

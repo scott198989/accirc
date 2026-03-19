@@ -20,6 +20,8 @@ export type GuidedSeriesParallelGoal =
   | 'series-parallel-impedance'
   | 'series-parallel-source-current'
   | 'series-parallel-real-power'
+  | 'series-parallel-branch-voltage'
+  | 'series-parallel-branch-current'
 
 export type GuidedSeriesParallelTopology = 'series' | 'parallel'
 
@@ -51,6 +53,7 @@ export interface GuidedSeriesParallelInput {
   frequencyUnitId: string
   sourceVoltageRawValue?: string
   sourceVoltageUnitId?: string
+  selectedNodeId?: string
   root: GuidedSeriesParallelGroupNode
 }
 
@@ -90,6 +93,7 @@ export interface GuidedSeriesParallelSolved {
     sourceCurrent?: ScalarValue
     sourceCurrentPhasor?: ComplexValue
     realPower?: ScalarValue
+    selectedNode?: GuidedSeriesParallelNodeSummary
   }
   reductions: GuidedSeriesParallelReductionStep[]
   nodeSummaries: GuidedSeriesParallelNodeSummary[]
@@ -284,6 +288,32 @@ export function solveGuidedSeriesParallelNetwork(
     nodeSummaries = summarizeNode(evaluated, sourcePhasor, sourceCurrentPhasor)
   }
 
+  if (goalNeedsTargetNode(goal)) {
+    if (!input.selectedNodeId?.trim()) {
+      return {
+        status: 'invalid',
+        message: 'Choose the branch or reduced block you want before solving this mixed-network target.',
+      }
+    }
+
+    if (input.selectedNodeId === input.root.id) {
+      return {
+        status: 'invalid',
+        message: 'Pick a branch or reduced subnetwork, not the overall root network, for this target.',
+      }
+    }
+
+    const selectedNode = nodeSummaries.find((summary) => summary.id === input.selectedNodeId)
+    if (!selectedNode) {
+      return {
+        status: 'invalid',
+        message: 'The selected branch target is no longer present in the current network tree. Pick it again and re-solve.',
+      }
+    }
+
+    reference.selectedNode = selectedNode
+  }
+
   const output = pickOutput(goal, reference)
 
   return {
@@ -316,6 +346,28 @@ function pickOutput(
         quantityId: 'realPower',
         value: reference.realPower ?? scalar(0),
         secondaryText: `Computed from source voltage, source current, and the network phase angle.`,
+      }
+    case 'series-parallel-branch-voltage':
+      return {
+        label: reference.selectedNode
+          ? `Voltage at ${reference.selectedNode.label}`
+          : 'Selected branch voltage',
+        quantityId: 'branchVoltagePhasor',
+        value: reference.selectedNode?.voltagePhasor ?? complex(0, 0),
+        secondaryText: reference.selectedNode
+          ? `Target impedance: ${formatQuantityInBaseUnit('impedanceComplex', reference.selectedNode.impedance)}`
+          : undefined,
+      }
+    case 'series-parallel-branch-current':
+      return {
+        label: reference.selectedNode
+          ? `Current through ${reference.selectedNode.label}`
+          : 'Selected branch current',
+        quantityId: 'phasorCurrent',
+        value: reference.selectedNode?.currentPhasor ?? complex(0, 0),
+        secondaryText: reference.selectedNode
+          ? `Target impedance: ${formatQuantityInBaseUnit('impedanceComplex', reference.selectedNode.impedance)}`
+          : undefined,
       }
     default:
       return {
@@ -586,7 +638,16 @@ function hasAnyValue(node: GuidedSeriesParallelNode): boolean {
 }
 
 function goalNeedsSourceVoltage(goal: GuidedSeriesParallelGoal): boolean {
-  return goal === 'series-parallel-source-current' || goal === 'series-parallel-real-power'
+  return (
+    goal === 'series-parallel-source-current' ||
+    goal === 'series-parallel-real-power' ||
+    goal === 'series-parallel-branch-voltage' ||
+    goal === 'series-parallel-branch-current'
+  )
+}
+
+function goalNeedsTargetNode(goal: GuidedSeriesParallelGoal): boolean {
+  return goal === 'series-parallel-branch-voltage' || goal === 'series-parallel-branch-current'
 }
 
 function invalidFor(label: string, message: string): GuidedSeriesParallelInvalid {

@@ -242,6 +242,19 @@ export const guidedMathGoalGroups = scopedGoalGroups
   }))
   .filter((group) => group.goals.length > 0)
 export const defaultGuidedMathGoal = guidedMathGoalGroups[0]?.goals[0] ?? guidedMathGoals[0]
+export const guidedMathQuickPickIds = [
+  'inductance-from-reactance-and-frequency',
+  'capacitance-from-reactance-and-frequency',
+  'impedance-from-source-voltage-and-current-phasors',
+  'current-phasor-from-sine-expression',
+  'voltage-phasor-from-sine-expression',
+  'branch-voltage-from-source-and-impedances',
+  'parallel-impedance-from-resistor-and-coil',
+  'parallel-admittance-from-g-bl-bc',
+] as const
+export const guidedMathQuickPicks = guidedMathQuickPickIds
+  .map((goalId) => guidedMathGoalById[goalId])
+  .filter(Boolean)
 export const THEME_STORAGE_KEY = 'accirc-theme-mode'
 
 export const guidedWorkflowOptions: GuidedWorkflowOption[] = [
@@ -311,6 +324,16 @@ export const seriesParallelGoalOptions: SeriesParallelGoalOption[] = [
     label: 'Real power of a mixed series-parallel network',
     description: 'Uses the reduced network, source current, and phase angle to find real power.',
   },
+  {
+    value: 'series-parallel-branch-voltage',
+    label: 'Voltage at a selected branch or reduced block',
+    description: 'Uses the solved node summaries to report the phasor voltage at one selected target.',
+  },
+  {
+    value: 'series-parallel-branch-current',
+    label: 'Current through a selected branch or reduced block',
+    description: 'Uses the solved node summaries to report the phasor current at one selected target.',
+  },
 ]
 
 export const parallelGoalOptions: ParallelGoalOption[] = [
@@ -328,6 +351,16 @@ export const parallelGoalOptions: ParallelGoalOption[] = [
     value: 'parallel-impedance',
     label: 'Equivalent series impedance of a parallel circuit',
     description: 'Useful when the homework asks for the total impedance or an equivalent series circuit.',
+  },
+  {
+    value: 'parallel-equivalent-series-resistance',
+    label: 'Equivalent series resistance of a parallel circuit',
+    description: 'Reads the real part of the reduced equivalent series impedance.',
+  },
+  {
+    value: 'parallel-equivalent-series-reactance',
+    label: 'Equivalent series reactance of a parallel circuit',
+    description: 'Reads the imaginary part of the reduced equivalent series impedance.',
   },
   {
     value: 'parallel-source-current',
@@ -645,6 +678,33 @@ export function defaultSeriesParallelGroupLabel(topology: GuidedSeriesParallelTo
 
 export function toScalar(value: number) {
   return { kind: 'scalar' as const, value }
+}
+
+export function listSeriesParallelTargets(root: GuidedSeriesParallelGroupNode) {
+  const targets: Array<{ id: string; label: string; kind: 'component' | 'group' }> = []
+
+  const visit = (node: GuidedSeriesParallelGroupNode) => {
+    for (const child of node.children) {
+      if (child.type === 'group') {
+        targets.push({
+          id: child.id,
+          label: child.label.trim() || defaultSeriesParallelGroupLabel(child.topology),
+          kind: 'group',
+        })
+        visit(child)
+        continue
+      }
+
+      targets.push({
+        id: child.id,
+        label: child.label.trim() || defaultSeriesParallelComponentLabel(child.kind),
+        kind: 'component',
+      })
+    }
+  }
+
+  visit(root)
+  return targets
 }
 
 function groupByCategory(definitions = quantityDefinitions) {

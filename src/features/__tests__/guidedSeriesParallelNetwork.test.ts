@@ -151,4 +151,91 @@ describe('solveGuidedSeriesParallelNetwork', () => {
     expect(xc?.voltagePhasor?.real).toBeCloseTo(30, 1)
     expect(xc?.voltagePhasor?.imag).toBeCloseTo(-30, 1)
   })
+
+  it('returns branch-target voltage and current outputs for a selected node', () => {
+    const root: GuidedSeriesParallelGroupNode = {
+      id: 'root',
+      type: 'group',
+      label: 'ZT',
+      topology: 'parallel',
+      children: [
+        {
+          id: 'xl1',
+          type: 'component',
+          label: 'XL1',
+          kind: 'inductor',
+          valueMode: 'reactance',
+          rawValue: '12',
+          unitId: 'ohm',
+        },
+        {
+          id: 'branch2',
+          type: 'group',
+          label: 'Branch 2',
+          topology: 'series',
+          children: [
+            {
+              id: 'r2',
+              type: 'component',
+              label: 'R2',
+              kind: 'resistor',
+              valueMode: 'resistance',
+              rawValue: '12',
+              unitId: 'ohm',
+            },
+            {
+              id: 'xc',
+              type: 'component',
+              label: 'XC',
+              kind: 'capacitor',
+              valueMode: 'reactance',
+              rawValue: '12',
+              unitId: 'ohm',
+            },
+          ],
+        },
+      ],
+    }
+
+    const branchVoltage = solveGuidedSeriesParallelNetwork({
+      goal: 'series-parallel-branch-voltage',
+      frequencyRawValue: '',
+      frequencyUnitId: 'hz',
+      sourceVoltageRawValue: '60',
+      sourceVoltageUnitId: 'v',
+      selectedNodeId: 'xc',
+      root,
+    })
+
+    const branchCurrent = solveGuidedSeriesParallelNetwork({
+      goal: 'series-parallel-branch-current',
+      frequencyRawValue: '',
+      frequencyUnitId: 'hz',
+      sourceVoltageRawValue: '60',
+      sourceVoltageUnitId: 'v',
+      selectedNodeId: 'branch2',
+      root,
+    })
+
+    expect(branchVoltage.status).toBe('solved')
+    expect(branchCurrent.status).toBe('solved')
+    if (
+      branchVoltage.status !== 'solved' ||
+      branchVoltage.output.value.kind !== 'complex' ||
+      !branchVoltage.reference.selectedNode ||
+      branchCurrent.status !== 'solved' ||
+      branchCurrent.output.value.kind !== 'complex' ||
+      !branchCurrent.reference.selectedNode
+    ) {
+      return
+    }
+
+    expect(branchVoltage.reference.selectedNode.label).toBe('XC')
+    expect(branchVoltage.output.value.real).toBeCloseTo(30, 1)
+    expect(branchVoltage.output.value.imag).toBeCloseTo(-30, 1)
+
+    expect(branchCurrent.reference.selectedNode.label).toBe('Branch 2')
+    expect(branchCurrent.output.value.real).toBeCloseTo(2.5, 1)
+    expect(branchCurrent.output.value.imag).toBeCloseTo(2.5, 1)
+  })
 })

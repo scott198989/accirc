@@ -48,12 +48,13 @@ describe('App', () => {
     expect(
       screen.getAllByRole('heading', { name: /Homework and screenshot reference library/i }).length,
     ).toBeGreaterThan(0)
-    expect(screen.getAllByText(/109 canonical files/i).length).toBeGreaterThan(0)
-    expect(screen.getAllByText(/17 exact duplicates removed/i).length).toBeGreaterThan(0)
-    expect(
-      screen.getAllByRole('link', { name: /Open file/i }).length,
-    ).toBeGreaterThanOrEqual(2)
-    expect(screen.getAllByText(/Test 2 study guide/i).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/5 canonical sources/i).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/3 homework files/i).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/48 canonical quiz screenshots/i).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/59 study-guide screenshots/i).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Quiz 15-16/i).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Quiz 17/i).length).toBeGreaterThan(0)
+    expect(screen.getByText(/Study guide only/i)).toBeInTheDocument()
   })
 
   it('shows light, dark, and system theme controls', () => {
@@ -72,29 +73,29 @@ describe('App', () => {
     const workflowTabs = within(screen.getAllByRole('tablist', { name: /Guided workflow/i })[0])
     fireEvent.click(workflowTabs.getByRole('tab', { name: /Quiz math goal/i }))
 
-    const select = screen.getAllByLabelText(/Question goal/i)[0] as HTMLSelectElement
+    const select = screen.getAllByLabelText(/Best match for the question/i)[0] as HTMLSelectElement
     const optionLabels = Array.from(select.options).map((option) => option.textContent ?? '')
 
-    expect(optionLabels).toContain('Find inductive reactance from frequency and inductance')
-    expect(optionLabels).toContain('Find capacitance from reactance and frequency')
+    expect(optionLabels).toContain('Question asks for XL from frequency and inductance')
+    expect(optionLabels).toContain('Question asks for capacitor C from XC and frequency')
     expect(optionLabels).toContain('Find total series RL impedance from resistance and XL')
     expect(optionLabels).toContain('Find total series impedance from resistance, XL, and XC')
-    expect(optionLabels).toContain('Find rectangular impedance from power, voltage, and power factor')
-    expect(optionLabels).toContain('Write a current phasor as a sinusoidal current expression')
-    expect(optionLabels).toContain('Find a branch voltage with the AC voltage-divider rule')
-    expect(optionLabels).toContain('Find total admittance from conductance and susceptances')
-    expect(optionLabels).toContain('Find total impedance of a resistor in parallel with a coil')
-    expect(optionLabels).toContain('Find capacitive susceptance from frequency and capacitance')
+    expect(optionLabels).toContain('Question gives P, V, and pf and asks for Z')
+    expect(optionLabels).toContain('Question gives i(t) and asks for the current phasor')
+    expect(optionLabels).toContain('Question asks for one branch voltage from E, Zbranch, and Ztotal')
+    expect(optionLabels).toContain('Question gives G, BL, and BC and asks for YT')
+    expect(optionLabels).toContain('Question asks for ZT of a resistor in parallel with a coil')
+    expect(optionLabels).toContain('Question asks for BC from frequency and C')
     expect(optionLabels).not.toContain('Find total capacitance of capacitors in parallel')
   })
 
   it('shows the formula path for the selected quiz goal', () => {
     render(<App />)
 
-    const select = screen.getAllByLabelText(/Question goal/i)[0] as HTMLSelectElement
+    const select = screen.getAllByLabelText(/Best match for the question/i)[0] as HTMLSelectElement
     fireEvent.change(select, { target: { value: 'series-impedance-from-r-xl-xc' } })
 
-    expect(screen.getAllByText(/^Formula path$/i).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/^Behind-the-scenes formula path$/i).length).toBeGreaterThan(0)
     expect(screen.getByText(/X = XL - XC/i)).toBeInTheDocument()
     expect(screen.getByText(/Z = R \+ j\(XL - XC\)/i)).toBeInTheDocument()
     expect(screen.getByText(/\|Z\| = sqrt\(R\^2 \+ X\^2\)/i)).toBeInTheDocument()
@@ -106,6 +107,19 @@ describe('App', () => {
     fireEvent.click(screen.getAllByRole('button', { name: /Add known/i })[0])
 
     expect(screen.getByText(/Known quantity/i)).toBeInTheDocument()
+  })
+
+  it('offers wording-based quick picks for common quiz asks', () => {
+    render(<App />)
+
+    const quickPick = screen.getByRole('button', {
+      name: /question gives XL and f and wants the inductor value L/i,
+    })
+
+    fireEvent.click(quickPick)
+
+    expect(screen.getByText(/This goal solves for:/i)).toBeInTheDocument()
+    expect(screen.getByText(/L \(Inductance\)/i)).toBeInTheDocument()
   })
 
   it('uses known-oriented labels in the series diagram workflow', () => {
@@ -141,7 +155,7 @@ describe('App', () => {
     expect(screen.getByRole('button', { name: /Solve textbook labels/i })).toBeInTheDocument()
   })
 
-  it('exposes the extra mixed-network goals already supported by the solver', () => {
+  it('exposes the mixed-network branch target goals and selector', () => {
     render(<App />)
 
     const workflowTabs = within(screen.getAllByRole('tablist', { name: /Guided workflow/i })[0])
@@ -153,5 +167,24 @@ describe('App', () => {
     expect(optionLabels).toContain('Total impedance of a mixed series-parallel network')
     expect(optionLabels).toContain('Source current of a mixed series-parallel network')
     expect(optionLabels).toContain('Real power of a mixed series-parallel network')
+    expect(optionLabels).toContain('Voltage at a selected branch or reduced block')
+    expect(optionLabels).toContain('Current through a selected branch or reduced block')
+
+    fireEvent.change(select, { target: { value: 'series-parallel-branch-voltage' } })
+
+    expect(screen.getByLabelText(/Branch or reduced block target/i)).toBeInTheDocument()
+  })
+
+  it('shows the new equivalent-series parallel goals', () => {
+    render(<App />)
+
+    const workflowTabs = within(screen.getAllByRole('tablist', { name: /Guided workflow/i })[0])
+    fireEvent.click(workflowTabs.getByRole('tab', { name: /Parallel circuit from diagram/i }))
+
+    const select = screen.getAllByLabelText(/Question goal/i)[0] as HTMLSelectElement
+    const optionLabels = Array.from(select.options).map((option) => option.textContent ?? '')
+
+    expect(optionLabels).toContain('Equivalent series resistance of a parallel circuit')
+    expect(optionLabels).toContain('Equivalent series reactance of a parallel circuit')
   })
 })

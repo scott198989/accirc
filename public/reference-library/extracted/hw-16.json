@@ -1,0 +1,11 @@
+{
+  "sourceId": "hw-16",
+  "parser": "pypdf",
+  "pageCount": 4,
+  "pages": [
+    "Scott Tuschl 3. For the configurations of Fig. 16.61: a. Find the admittance in rectangular and polar form. b. Sketch the admittance diagram. Fig. 16.61 5. For each configuration of Fig. 16.63: a. Find the total impedance in polar form. b. Calculate the total admittance using the results of part (a). c. Identify the total conductance and susceptance parts of the total admittance. d. Sketch the admittance diagram.",
+    "Fig. 16.63. 9. For the network in Fig. 16.67: a. Find the total admittance \ud835\udc18\ud835\udc13 in polar form. b. Draw the admittance diagram. c. Find the voltage E and the currents \ud835\udc08\ud835\udc11 and \ud835\udc08\ud835\udc0b in phasor form. d. Draw the phasor diagram of the currents \ud835\udc08\ud835\udc12, \ud835\udc08\ud835\udc11 and \ud835\udc08\ud835\udc0b and the voltage E. e. Verify Kirchhoff\u2019s current law at one node. f. Find the average power delivered to the circuit. g. Find the power factor of the circuit, and indicate whether it is leading or lagging. h. Find the sinusoidal expressions for the currents and voltage if the frequency is 60 Hz. i. Plot the waveforms for the currents and voltage on the same set of axes.",
+    "14. Calculate the currents \ud835\udc08\ud835\udfcf and \ud835\udc08\ud835\udfd0 in Fig. 16.72 in phasor form using the current divider rule. Fig. 16.72. 19. For the parallel R-L-C network in Fig. 16.75. a. Plot \ud835\udc18\ud835\udc13 and \ud835\udec9\ud835\udc13 (of \ud835\udc18\ud835\udc13 = \ud835\udc18\ud835\udc13 \u2220 \ud835\udec9\ud835\udc13) for a frequency range of zero to 20 kHz. b. Repeat part (a) for \ud835\udc19\ud835\udc13 and \ud835\udec9\ud835\udc13 (of \ud835\udc19\ud835\udc13 = \ud835\udc19\ud835\udc13 \u2220 \ud835\udec9\ud835\udc13). c. Plot \ud835\udc15\ud835\udc02 versus frequency for the frequency range of part (a). d. Plot \ud835\udc08\ud835\udc0b versus frequency for the frequency range of part (a). Fig. 16.75.",
+    "21. For the parallel circuits in Fig. 16.77, find a series circuit that will have the same total impedance. Fig. 16.77."
+  ]
+}

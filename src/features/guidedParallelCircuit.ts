@@ -17,6 +17,8 @@ export type GuidedParallelGoal =
   | 'parallel-admittance'
   | 'parallel-admittance-angle'
   | 'parallel-impedance'
+  | 'parallel-equivalent-series-resistance'
+  | 'parallel-equivalent-series-reactance'
   | 'parallel-source-current'
   | 'parallel-power-factor'
   | 'parallel-real-power'
@@ -52,6 +54,8 @@ export interface GuidedParallelCircuitSolved {
     admittanceAngle: GuidedComputedValue
     impedanceRectangular: GuidedComputedValue
     impedanceMagnitude: GuidedComputedValue
+    equivalentSeriesResistance: GuidedComputedValue
+    equivalentSeriesReactance: GuidedComputedValue
     powerFactor: GuidedComputedValue
     sourceVoltagePhasor?: GuidedComputedValue
     sourceCurrent?: GuidedComputedValue
@@ -218,6 +222,10 @@ export function solveGuidedParallelCircuit(
   }
 
   const netSusceptance = totalCapacitiveSusceptance - totalInductiveSusceptance
+  const equivalentSeriesResistanceValue =
+    impedanceRectangular.value.kind === 'complex' ? impedanceRectangular.value.real : 0
+  const equivalentSeriesReactanceValue =
+    impedanceRectangular.value.kind === 'complex' ? impedanceRectangular.value.imag : 0
   const reference = {
     admittanceRectangular: makeComputedValue(
       'admittance-rectangular',
@@ -253,6 +261,20 @@ export function solveGuidedParallelCircuit(
       'impedanceMagnitude',
       impedanceMagnitude,
       `Rectangular form: ${formatQuantitySmart('impedanceComplex', impedanceRectangular.value)}`,
+    ),
+    equivalentSeriesResistance: makeComputedValue(
+      'equivalent-series-resistance',
+      'Equivalent series resistance',
+      'resistance',
+      syntheticSolvedResult('resistance', scalar(equivalentSeriesResistanceValue)),
+      'This is the real part of the reduced equivalent series impedance.',
+    ),
+    equivalentSeriesReactance: makeComputedValue(
+      'equivalent-series-reactance',
+      'Equivalent series reactance',
+      'netReactance',
+      syntheticSolvedResult('netReactance', scalar(equivalentSeriesReactanceValue)),
+      'This is the imaginary part of the reduced equivalent series impedance.',
     ),
     powerFactor: makeComputedValue(
       'power-factor',
@@ -374,6 +396,10 @@ function pickGoalOutput(
       return reference.admittanceAngle
     case 'parallel-impedance':
       return reference.impedanceRectangular
+    case 'parallel-equivalent-series-resistance':
+      return reference.equivalentSeriesResistance
+    case 'parallel-equivalent-series-reactance':
+      return reference.equivalentSeriesReactance
     case 'parallel-source-current':
       return reference.sourceCurrent
     case 'parallel-power-factor':
@@ -402,6 +428,15 @@ function makeComputedValue(
     quantityId,
     result,
     secondaryText,
+  }
+}
+
+function syntheticSolvedResult(quantityId: QuantityId, value: QuantityValue): SolveResult {
+  return {
+    status: 'solved',
+    target: quantityId,
+    value,
+    steps: [],
   }
 }
 

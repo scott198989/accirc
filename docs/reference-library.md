@@ -1,61 +1,95 @@
 # Reference Library
 
-## Status
+## Canonical workspace
 
-The uploaded archive `Homeworks and Screenshots.zip` has been imported into the repo as a
-canonical reference library.
+The maintained workspace is now:
 
-Committed locations:
+- `C:\dev\accirc`
+
+External OneDrive folders remain raw provenance only. They are not the maintained source of truth.
+
+## Canonical source model
+
+The repo now tracks six source groups in `src/data/referenceLibrary.ts`:
+
+- `HW 15` (`hw-15`) - canonical Chapter 15 homework
+- `HW 16` (`hw-16`) - canonical Chapter 16 homework
+- `HW 17` (`hw-17`) - canonical Chapter 17 homework
+- `Quiz 15-16` (`quiz-15-16`) - canonical combined quiz screenshot set
+- `Quiz 17` (`quiz-17`) - canonical separate quiz screenshot set
+- `Study guide` (`study-guide`) - supplemental screenshots only
+
+Only the first five sources count toward formula-coverage scope.
+
+## Repo locations
+
+Committed assets now live under:
+
+- `public/reference-library/sources/`
+- `public/reference-library/extracted/`
+- `src/data/referenceLibrary.ts`
+- `src/data/questionCatalog.ts`
+
+The old archive-shaped folders:
 
 - `public/reference-library/homework/`
 - `public/reference-library/screenshots/`
-- `src/data/referenceLibrary.ts`
 
-## Imported totals
+have been replaced by the source-centric layout above.
 
-- Total files in the source archive: `126`
-- Canonical files committed to the repo: `109`
-- Homework documents: `2`
-- Screenshots: `107`
-- Exact duplicate files removed: `17`
+## Current totals
 
-## Canonical collections
+- `6` total source groups
+- `5` canonical coverage sources
+- `1` supplemental source
+- `3` homework documents
+- `48` canonical quiz screenshots
+- `59` supplemental study-guide screenshots
+- `110` total committed reference assets
+- `5` extracted text artifacts
 
-### Homework
+## Extracted artifacts
 
-- `Scott Tuschl HW 15 A000834342.pdf`
-- `Scott Tuschl ch 16 HW.docx`
+The import pipeline persists extraction outputs beside the canonical files:
 
-### Screenshot sets
+- `public/reference-library/extracted/hw-15.json`
+- `public/reference-library/extracted/hw-16.json`
+- `public/reference-library/extracted/hw-17.json`
+- `public/reference-library/extracted/quiz-15-16-ocr.json`
+- `public/reference-library/extracted/quiz-17-manual.json`
 
-- `Test 2 study guide`: `59` canonical screenshots
-- `test 2 no 2`: `25` screenshots
-- `test 2 no 3`: `23` screenshots
+These artifacts back the question catalog and make the cleanup auditable without reopening the raw files each time.
 
-## Duplicate cleanup
+## Question catalog
 
-The duplicate cleanup was hash-based using SHA-256.
+`src/data/questionCatalog.ts` is now the canonical question index.
 
-All `17` exact duplicate groups came from the overlap between:
+Each record keeps:
 
-- `Ch 15-16 screen shots`
-- `Test 2 study guide`
+- one canonical source id
+- chapter metadata
+- question number and optional sub-part
+- classification
+- parsed prompt text
+- canonical asset refs
+- coverage status
+- mapped solver mode
+- mapped goal ids
+- mapped formula ids
+- a regression test mapping
 
-The canonical copies were kept in `Test 2 study guide`, and the duplicate provenance was
-preserved in `src/data/referenceLibrary.ts`.
-
-## Parsing notes
-
-- `*.png`, `*.pdf`, and `*.docx` are marked as binary in `.gitattributes` so Git pull/push does
-  not attempt line-ending conversion or text diffs.
-- The Chapter 16 `.docx` is machine-readable and its extracted outline is stored in the manifest.
-- The Chapter 15 `.pdf` is preserved as the original file and is treated as image-based in the
-  current environment.
+This is the structure that prevents duplicate question copies from spreading through the app again.
 
 ## Re-import command
 
-If a newer archive needs to replace this library, run:
+To rebuild the reference manifest from the current raw material roots:
 
 ```bash
-python scripts/import_reference_library.py "C:\path\to\Homeworks and Screenshots.zip"
+python scripts/import_reference_library.py --project-root C:\dev\accirc
 ```
+
+The script reads the current study materials and raw provenance folders that were hard-coded for this cleanup pass, then regenerates:
+
+- canonical public assets
+- extracted JSON artifacts
+- `src/data/referenceLibrary.ts`

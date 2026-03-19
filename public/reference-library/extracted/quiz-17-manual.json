@@ -1,0 +1,177 @@
+{
+  "sourceId": "quiz-17",
+  "parser": "manual-visual",
+  "note": "Manual visual extraction from the canonical screenshot set. Figure labels in the images remain preserved as provenance even when they reference chapter 16.x textbook figures.",
+  "questions": [
+    {
+      "questionNumber": "1",
+      "classification": "true-false",
+      "promptText": "The equivalent circuit is used in determining the source current in series-parallel AC networks."
+    },
+    {
+      "questionNumber": "2",
+      "classification": "calculation",
+      "promptText": "Figure 16.5: determine the branch current I1 from the shown source and branch impedances."
+    },
+    {
+      "questionNumber": "3",
+      "classification": "concept",
+      "promptText": "Figure 16.3: choose the current relationship that correctly describes branch current I1."
+    },
+    {
+      "questionNumber": "4",
+      "classification": "calculation",
+      "promptText": "Figure 16.5: determine the total admittance YT of the circuit."
+    },
+    {
+      "questionNumber": "5",
+      "classification": "calculation",
+      "promptText": "Figure 16.6: determine the total impedance ZT of the circuit."
+    },
+    {
+      "questionNumber": "6",
+      "classification": "true-false",
+      "promptText": "The total impedance of two parallel impedances equals the sum of the impedances divided by their product."
+    },
+    {
+      "questionNumber": "7",
+      "classification": "true-false",
+      "promptText": "Figure 16.2 statement about the total impedance being purely resistive."
+    },
+    {
+      "questionNumber": "8",
+      "classification": "calculation",
+      "promptText": "Figure 16.2: determine the total impedance ZT of the circuit."
+    },
+    {
+      "questionNumber": "9",
+      "classification": "calculation",
+      "promptText": "Figure 16.9: determine the current through the 11.5 ohm capacitor branch."
+    },
+    {
+      "questionNumber": "10",
+      "classification": "concept",
+      "promptText": "Figure 16.4: choose the correct current relationship for the mixed network."
+    },
+    {
+      "questionNumber": "11",
+      "classification": "calculation",
+      "promptText": "Figure 16.1: determine the total impedance ZT of the circuit."
+    },
+    {
+      "questionNumber": "12",
+      "classification": "true-false",
+      "promptText": "The fundamental concept for solving series-parallel AC networks is different from solving series-parallel DC networks."
+    },
+    {
+      "questionNumber": "13",
+      "classification": "true-false",
+      "promptText": "If the total impedance has a negative phase angle, the network is capacitive in nature."
+    },
+    {
+      "questionNumber": "14",
+      "classification": "calculation",
+      "promptText": "Figure 16.6: determine the total current I."
+    },
+    {
+      "questionNumber": "15",
+      "classification": "calculation",
+      "promptText": "Figure 16.5: determine the value of current I1."
+    },
+    {
+      "questionNumber": "16",
+      "classification": "true-false",
+      "promptText": "Combining the impedance of more than one element can help determine the total voltage across a series combination."
+    },
+    {
+      "questionNumber": "17",
+      "classification": "true-false",
+      "promptText": "At higher frequency, XC is better approximated as a short circuit for AC conductors."
+    },
+    {
+      "questionNumber": "18",
+      "classification": "calculation",
+      "promptText": "Figure 16.9: determine the current through the 20 ohm resistor."
+    },
+    {
+      "questionNumber": "19",
+      "classification": "calculation",
+      "promptText": "Figure 16.4: given source voltage and source current phasors, determine the total impedance ZT."
+    },
+    {
+      "questionNumber": "20",
+      "classification": "true-false",
+      "promptText": "Figure 16.1: the total impedance ZT is independent of the applied frequency."
+    },
+    {
+      "questionNumber": "21",
+      "classification": "true-false",
+      "promptText": "Figure 16.1: the current divider rule can be applied to determine the current through the capacitor."
+    },
+    {
+      "questionNumber": "22",
+      "classification": "true-false",
+      "promptText": "The effect of a capacitor in the dual analog is negligible and allows AC to pass with little disturbance."
+    },
+    {
+      "questionNumber": "23",
+      "classification": "calculation",
+      "promptText": "Figure 16.1: given the applied frequency, determine the inductor value L."
+    },
+    {
+      "questionNumber": "24",
+      "classification": "true-false",
+      "promptText": "Figure 16.1: current I2 may be found by dividing E by ZP."
+    },
+    {
+      "questionNumber": "25",
+      "classification": "true-false",
+      "promptText": "A ground-fault circuit interrupter does not prevent all shock current, but it does cut power quickly."
+    },
+    {
+      "questionNumber": "26",
+      "classification": "concept",
+      "promptText": "Figure 16.3: choose the equation that correctly describes the source voltage E."
+    },
+    {
+      "questionNumber": "27",
+      "classification": "calculation",
+      "promptText": "Figure 16.9: determine the current through the 20 ohm resistor."
+    },
+    {
+      "questionNumber": "28",
+      "classification": "true-false",
+      "promptText": "Ladder networks do not require the total impedance to be known before determining total current."
+    },
+    {
+      "questionNumber": "29",
+      "classification": "calculation",
+      "promptText": "Figure 16.1: given the source current phasor, determine the current through the coil."
+    },
+    {
+      "questionNumber": "30",
+      "classification": "concept",
+      "promptText": "Figure 16.3: choose the equation that correctly describes the total impedance ZT."
+    },
+    {
+      "questionNumber": "31",
+      "classification": "concept",
+      "promptText": "Figure 16.4: choose the equation that correctly describes the total impedance ZT."
+    },
+    {
+      "questionNumber": "32",
+      "classification": "true-false",
+      "promptText": "Determining source current is the most critical step in solving series-parallel AC networks."
+    },
+    {
+      "questionNumber": "33",
+      "classification": "true-false",
+      "promptText": "Figure 16.1 statement comparing the total impedance to R, XC, and XL."
+    },
+    {
+      "questionNumber": "34",
+      "classification": "concept",
+      "promptText": "Figure 16.2: as frequency increases, describe how the total impedance changes."
+    }
+  ]
+}

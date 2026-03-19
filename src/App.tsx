@@ -94,6 +94,7 @@ function App() {
   )
   const [seriesParallelResult, setSeriesParallelResult] =
     useState<GuidedSeriesParallelResult | null>(null)
+  const [seriesParallelTargetNodeId, setSeriesParallelTargetNodeId] = useState('')
   const [symbolTopology, setSymbolTopology] = useState<GuidedSymbolTopology>('series')
   const [symbolRows, setSymbolRows] = useState<GuidedSymbolRow[]>([makeGuidedSymbolRow()])
   const [symbolResult, setSymbolResult] = useState<GuidedSymbolProblemResult | null>(null)
@@ -323,6 +324,7 @@ function App() {
       setSourceVoltageRawValue('')
       setSourceVoltageUnitId('v')
       setSeriesParallelRoot(makeSeriesParallelRoot())
+      setSeriesParallelTargetNodeId('')
       setSeriesParallelResult(null)
     })
   }
@@ -336,6 +338,7 @@ function App() {
           frequencyUnitId,
           sourceVoltageRawValue,
           sourceVoltageUnitId,
+          selectedNodeId: seriesParallelTargetNodeId,
           root: seriesParallelRoot,
         }),
       )
@@ -440,6 +443,7 @@ function App() {
       setSourceCurrentPhasorRawValue('')
       setSourceCurrentPhasorUnitId('a')
       setSeriesParallelRoot(cloneSeriesParallelGroup(sample.root))
+      setSeriesParallelTargetNodeId('')
       setSeriesParallelResult(null)
     })
   }
@@ -475,6 +479,7 @@ function App() {
           seriesParallelGoal={seriesParallelGoal}
           seriesParallelResult={seriesParallelResult}
           seriesParallelRoot={seriesParallelRoot}
+          seriesParallelTargetNodeId={seriesParallelTargetNodeId}
           sourceCurrentPhasorRawValue={sourceCurrentPhasorRawValue}
           sourceCurrentPhasorUnitId={sourceCurrentPhasorUnitId}
           sourceVoltageRawValue={sourceVoltageRawValue}
@@ -496,6 +501,7 @@ function App() {
           onRemoveSeriesParallelNode={removeSeriesParallelTreeNode}
           onResetSeriesParallelBuilder={resetSeriesParallelBuilder}
           onSeriesParallelGoalChange={setSeriesParallelGoal}
+          onSeriesParallelTargetNodeIdChange={setSeriesParallelTargetNodeId}
           onSolveGuidedMath={solveGuidedMathMode}
           onSolveGuidedMode={solveGuidedMode}
           onSolveParallelMode={solveParallelMode}
