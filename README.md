@@ -210,3 +210,103 @@ npm run test:run
 npm run lint
 npm run build
 ```
+
+## Desktop and laptop setup
+
+Use this section when setting up the project on your laptop so it matches your desktop as closely as possible.
+
+### What is already synced by GitHub
+
+After you pull the repo, you already have:
+
+- the app code
+- the committed homework files
+- the committed screenshot files
+- the reference-library manifest
+- the duplicate cleanup work
+
+You do **not** need to manually copy the screenshots or homework documents between machines anymore because they are already committed inside this repo.
+
+### Required software
+
+Install these on the laptop:
+
+- Git
+- Node.js
+- npm
+- a modern browser
+
+This app currently runs with the standard Node/npm toolchain already used in this repo. No app-specific environment variables are required.
+
+### First-time laptop setup
+
+Clone the repo:
+
+```bash
+git clone https://github.com/scott198989/accirc.git
+cd accirc
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Validate the setup:
+
+```bash
+npm run test:run
+npm run lint
+npm run build
+```
+
+Start the app:
+
+```bash
+npm run dev:local
+```
+
+Then open:
+
+```text
+http://127.0.0.1:4173/
+```
+
+### Daily sync workflow for both machines
+
+Before starting work on either the desktop or laptop:
+
+```bash
+git pull --ff-only origin main
+```
+
+After making changes:
+
+```bash
+git add .
+git commit -m "Describe the work clearly"
+git push origin main
+```
+
+On the other machine, pull again:
+
+```bash
+git pull --ff-only origin main
+```
+
+### If you want Codex on the laptop to see the same project
+
+Open the cloned repo folder in Codex on the laptop. Once the repo has been pulled, Codex will have access to the same committed code, homework files, screenshots, and docs that exist on the desktop copy.
+
+Good folders to keep consistent are:
+
+- the repo itself
+- your Git login on both machines
+- your Node/npm installation
+
+### Current GitHub source of truth
+
+- repo: `https://github.com/scott198989/accirc.git`
+- branch: `main`
+- latest pushed solver-coverage commit: `c784f9a`
