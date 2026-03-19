@@ -180,9 +180,113 @@ select:focus-visible {
   gap: 1.25rem;
 }
 
+.reference-library {
+  margin-bottom: 1.5rem;
+}
+
 .hero {
   grid-template-columns: minmax(0, 1.8fr) minmax(280px, 0.95fr);
   margin-bottom: 1.5rem;
+}
+
+.reference-library__header,
+.reference-library__stats,
+.reference-library__footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.reference-library__header {
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 1rem;
+}
+
+.reference-library__lede,
+.reference-card__meta,
+.reference-library__footer p {
+  color: var(--text-secondary);
+}
+
+.reference-library__stats {
+  justify-content: flex-end;
+}
+
+.reference-library__stats span {
+  padding: 0.55rem 0.9rem;
+  background: var(--surface-badge);
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  font-size: 0.92rem;
+}
+
+.reference-library__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: 1.25rem;
+}
+
+.reference-card {
+  gap: 0.85rem;
+}
+
+.reference-outline,
+.reference-link-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.45rem;
+  color: var(--text-secondary);
+}
+
+.reference-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.reference-preview-grid a {
+  display: block;
+}
+
+.reference-preview {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 18px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-main);
+  box-shadow: 0 12px 24px rgba(19, 35, 39, 0.08);
+}
+
+.reference-details {
+  border-top: 1px solid var(--border-soft);
+  padding-top: 0.85rem;
+}
+
+.reference-details summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.reference-link-list {
+  margin-top: 0.75rem;
+}
+
+.reference-link-list a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.reference-link-list a:hover {
+  text-decoration: underline;
+}
+
+.reference-library__footer {
+  margin-top: 1rem;
+  justify-content: space-between;
 }
 
 .mode-switch,
@@ -627,6 +731,7 @@ h2 {
 @media (max-width: 980px) {
   .hero,
   .workspace,
+  .reference-library__grid,
   .detail-grid,
   .network-node__controls {
     grid-template-columns: 1fr;
@@ -650,6 +755,10 @@ h2 {
   }
 
   .frequency-row {
+    grid-template-columns: 1fr;
+  }
+
+  .reference-preview-grid {
     grid-template-columns: 1fr;
   }
 

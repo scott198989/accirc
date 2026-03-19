@@ -33,6 +33,7 @@ If you are picking this up in a cloud workspace, read:
 
 - `docs/cloud-codex-handoff.md`
 - `docs/homework-audit-2026-03-18.md`
+- `docs/reference-library.md`
 
 Those documents describe:
 
@@ -41,6 +42,58 @@ Those documents describe:
 - what was already audited
 - what work was in progress
 - where the next implementation pass should continue
+
+## Reference library
+
+The homework files and screenshot sets now live inside the repo under:
+
+- `public/reference-library/homework/`
+- `public/reference-library/screenshots/`
+- `src/data/referenceLibrary.ts`
+
+Current imported totals:
+
+- `109` canonical files committed to the repo
+- `2` homework documents
+- `107` screenshots
+- `17` exact duplicate screenshots removed during import
+
+The generated manifest preserves:
+
+- the original zip paths
+- SHA-256 hashes for each canonical file
+- which duplicate screenshot paths were collapsed into a single kept copy
+
+Binary asset safety for Git pulls is enforced in `.gitattributes` for `*.docx`, `*.pdf`, and `*.png`.
+
+If you need to re-import a new archive later, run:
+
+```bash
+python scripts/import_reference_library.py "C:\path\to\Homeworks and Screenshots.zip"
+```
+
+## GitHub sync for desktop and laptop
+
+This repo already uses GitHub as the shared source of truth:
+
+- remote: `https://github.com/scott198989/accirc.git`
+- branch: `main`
+
+Recommended workflow on either machine:
+
+```bash
+git pull --ff-only origin main
+```
+
+Make your changes, then:
+
+```bash
+git add .
+git commit -m "Describe the work clearly"
+git push origin main
+```
+
+That keeps your desktop, laptop, GitHub, and any cloud workspace aligned on the same committed assets and code.
 
 ## What the app covers
 

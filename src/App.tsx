@@ -28,6 +28,7 @@ import {
 import AppHeader from './features/appShell/AppHeader'
 import FormulaWorkspace from './features/appShell/FormulaWorkspace'
 import GuidedWorkspace from './features/appShell/GuidedWorkspace'
+import ReferenceLibraryPanel from './features/appShell/ReferenceLibraryPanel'
 import {
   cloneSeriesParallelGroup,
   defaultGuidedMathGoal,
@@ -367,6 +368,8 @@ function App() {
         onModeChange={setMode}
         onThemeChange={setThemeMode}
       />
+
+      <ReferenceLibraryPanel />
 
       {mode === 'guided' ? (
         <GuidedWorkspace

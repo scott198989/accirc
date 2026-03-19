@@ -17,7 +17,16 @@ The user should be able to pick what the problem asks for, enter the known value
 
 ## Source materials
 
-These files were used to define the intended scope. They are local external files and are **not committed to the repo**.
+The current canonical source library is now committed to the repo and available in cloud or local
+workspaces at:
+
+- `public/reference-library/homework/`
+- `public/reference-library/screenshots/`
+- `src/data/referenceLibrary.ts`
+
+For the import and dedupe details, read `docs/reference-library.md`.
+
+The external originals used in the earlier audit were:
 
 ### Homework files
 
@@ -36,7 +45,9 @@ These files were used to define the intended scope. They are local external file
 
 - `G:\My Drive\New School Notes\AC Circuits\Notes\ch-17-PPTaccessible.pptx`
 
-If you are working in the cloud, you will need these files uploaded or mounted there before you can continue the source audit.
+If you are working from a fresh cloud checkout now, you no longer need the original external paths
+just to review the audited source material because the committed reference library is part of the
+repo.
 
 ## What was already audited
 

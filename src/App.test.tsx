@@ -45,6 +45,20 @@ describe('App', () => {
     ).toBeGreaterThan(0)
   })
 
+  it('renders the committed reference library summary', () => {
+    render(<App />)
+
+    expect(
+      screen.getAllByRole('heading', { name: /Homework and screenshot reference library/i }).length,
+    ).toBeGreaterThan(0)
+    expect(screen.getAllByText(/109 canonical files/i).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/17 exact duplicates removed/i).length).toBeGreaterThan(0)
+    expect(
+      screen.getAllByRole('link', { name: /Open file/i }).length,
+    ).toBeGreaterThanOrEqual(2)
+    expect(screen.getAllByText(/Test 2 study guide/i).length).toBeGreaterThan(0)
+  })
+
   it('shows light, dark, and system theme controls', () => {
     render(<App />)
 
